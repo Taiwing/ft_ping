@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 19:05:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 19:41:49 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,7 @@ t_pingcfg	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
 {
+	int			sockfd;
 	t_pingcfg	cfg = { 0 };
 
 	g_cfg = &cfg;
@@ -77,8 +78,9 @@ int	main(int argc, char **argv)
 		ft_exit("usage error: Destination address required", EXIT_FAILURE);
 	//TODO: check ICMP socket permission with getpid and getuid
 	get_destinfo();
-	ft_printf("PING %s (%s) 56(84) bytes of data.\n",
-		g_cfg->dest, g_cfg->ip);
+	ft_printf("PING %s (%s) 56(84) bytes of data.\n", g_cfg->dest, g_cfg->ip);
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)) == -1)
+		ft_exit(strerror(errno), EXIT_FAILURE);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

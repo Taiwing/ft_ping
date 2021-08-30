@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 19:28:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 19:40:06 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "libft.h"
 # include <netdb.h>
 # include <arpa/inet.h>
+# include <errno.h>
 
 /*
 ** Ping configuration structure
