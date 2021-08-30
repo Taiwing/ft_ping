@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 14:29:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 14:59:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 typedef struct	s_pingcfg
 {
 	const char	*exec_name;
+	const char	*destination;
 	int			verbose;
 }				t_pingcfg;
 
