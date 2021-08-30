@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 21:24:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 21:54:17 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,14 +66,20 @@ static void	ping_cleanup(void)
 static void	ping(int sockfd)
 {
 	struct icmphdr	icmp = { 0 };
-	char			buf[REQBUF] = { 0 };
+	char			request[REQBUF] = { 0 };
+	char			msg_name[INET_ADDRSTRLEN + 1] = { 0 };
+	struct msghdr	response = { msg_name, INET_ADDRSTRLEN, 0, 0, 0, 0, 0 };
 
 	icmp.type = ICMP_ECHO;
-	ft_memcpy((void *)buf, (void *)&icmp, sizeof(struct icmphdr));
-	if (sendto(sockfd, buf, REQBUF, 0,
+	ft_memcpy((void *)request, (void *)&icmp, sizeof(struct icmphdr));
+	if (sendto(sockfd, request, REQBUF, 0,
 		g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
 		ft_exit(strerror(errno), EXIT_FAILURE);
 	ft_printf("ICMP ECHO packet sent successfully\n");
+	if (recvmsg(sockfd, &response, 0) < 0)
+		ft_exit(strerror(errno), EXIT_FAILURE);
+	ft_printf("ICMP ECHO response received successfully\n");
+	ft_printf("msg_name: %s\n", response.msg_name);
 }
 
 t_pingcfg	*g_cfg = NULL;
