@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 19:41:49 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 21:24:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,19 @@ static void	ping_cleanup(void)
 		freeaddrinfo(g_cfg->destinfo);
 }
 
+static void	ping(int sockfd)
+{
+	struct icmphdr	icmp = { 0 };
+	char			buf[REQBUF] = { 0 };
+
+	icmp.type = ICMP_ECHO;
+	ft_memcpy((void *)buf, (void *)&icmp, sizeof(struct icmphdr));
+	if (sendto(sockfd, buf, REQBUF, 0,
+		g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
+		ft_exit(strerror(errno), EXIT_FAILURE);
+	ft_printf("ICMP ECHO packet sent successfully\n");
+}
+
 t_pingcfg	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
@@ -79,8 +92,9 @@ int	main(int argc, char **argv)
 	//TODO: check ICMP socket permission with getpid and getuid
 	get_destinfo();
 	ft_printf("PING %s (%s) 56(84) bytes of data.\n", g_cfg->dest, g_cfg->ip);
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)) == -1)
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)) < 0)
 		ft_exit(strerror(errno), EXIT_FAILURE);
+	ping(sockfd);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }

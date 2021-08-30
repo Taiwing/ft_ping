@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 19:40:06 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 21:22:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "libft.h"
 # include <netdb.h>
 # include <arpa/inet.h>
+# include <netinet/ip_icmp.h>
 # include <errno.h>
 
 /*
@@ -43,9 +44,10 @@ typedef struct			s_pingcfg
 */
 extern t_pingcfg		*g_cfg;
 
-#define	FT_PING_OPT		"vh"
-#define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
+# define	FT_PING_OPT		"vh"
+# define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
 	"\t-h\t\t\tprint help and exit\n\t-v\t\t\tverbose output\n"
+# define	REQBUF			64
 
 #endif
