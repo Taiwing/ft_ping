@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 12:54:33 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 14:21:29 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,12 @@
 typedef struct	s_pingcfg
 {
 	const char	*exec_name;
+	int			verbose;
 }				t_pingcfg;
+
+#define	FT_PING_OPT		"vh"
+#define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
+	"Options:\n\t<destination>\t\tdns name or ip address\n"\
+	"\t-h\t\t\tprint help and exit\n\t-v\t\t\tverbose output\n"
 
 #endif
