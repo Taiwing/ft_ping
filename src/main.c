@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 18:17:35 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 19:05:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,26 +36,25 @@ static char	*get_options(int argc, char **argv)
 	return (argv[optd.optind]);
 }
 
-static struct addrinfo	*get_destinfo(void)
+static void	get_destinfo(void)
 {
 	int				ret;
 	char			*err;
-	struct addrinfo	*res;
 	struct addrinfo	hints;
 
 	ft_bzero((void *)&hints, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_ICMP;
-	if (!(ret = getaddrinfo(g_cfg->destination, NULL, NULL, &res)))
-		ft_printf("getaddrinfo: HUGE SUUCCESSSS\n");
-	ft_printf("getaddrinfo return: %d\n", ret);
-	if (ret)
+	if ((ret = getaddrinfo(g_cfg->dest, NULL, NULL, &g_cfg->destinfo)))
 	{
-		ft_asprintf(&err, "%s: %s", g_cfg->destination, gai_strerror(ret));
+		ft_asprintf(&err, "%s: %s", g_cfg->dest, gai_strerror(ret));
 		ft_exit(err, EXIT_FAILURE);
 	}
-	return (res);
+	g_cfg->addr_in = (struct sockaddr_in *)g_cfg->destinfo->ai_addr;
+	if (!inet_ntop(AF_INET, (void *)&g_cfg->addr_in->sin_addr,
+		g_cfg->ip, INET_ADDRSTRLEN))
+		ft_exit("inet_ntop error", EXIT_FAILURE);
 }
 
 static void	ping_cleanup(void)
@@ -74,12 +73,12 @@ int	main(int argc, char **argv)
 	ft_atexit(ping_cleanup);
 	g_cfg->exec_name = ft_exec_name(*argv);
 	ft_exitmsg((char *)g_cfg->exec_name);
-	if (!(g_cfg->destination = get_options(argc, argv)))
+	if (!(g_cfg->dest = get_options(argc, argv)))
 		ft_exit("usage error: Destination address required", EXIT_FAILURE);
 	//TODO: check ICMP socket permission with getpid and getuid
-	g_cfg->destinfo = get_destinfo();
-	ft_printf("This is %s!\n", g_cfg->exec_name);
-	ft_printf("destination is: %s\n", g_cfg->destination);
+	get_destinfo();
+	ft_printf("PING %s (%s) 56(84) bytes of data.\n",
+		g_cfg->dest, g_cfg->ip);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
 }
