@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 19:05:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/30 19:28:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,11 @@
 ** Ping configuration structure
 **
 ** exec_name: name of the ft_ping executable
+** dest: destination given by user
+** verbose: boolean set to 1 if verbose mode is on
+** destinfo: result of getaddrinfo call (to be freed)
+** addr_in: sockaddr_in cast of sockaddr pointer
+** ip: ip string from inet_ntop
 */
 typedef struct			s_pingcfg
 {
