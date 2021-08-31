@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 15:34:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 17:40:26 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,10 +118,19 @@ static void	ping(int sockfd)
 		ft_asprintf(&err, "sendto: %s", strerror(errno));
 	else
 		ft_printf("ICMP ECHO packet sent successfully\n");
-	if (!err && recvmsg(sockfd, &g_cfg->response, 0) < 0)
+	if (!err && (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
 		ft_asprintf(&err, "recvmsg: %s", strerror(errno));
 	else if (!err)
-		ft_printf("ICMP ECHO response received successfully\n");
+		ft_printf("ICMP ECHO response received successfully (%d bytes)\n",
+			(int)g_cfg->rd);
+	switch (g_cfg->response.msg_flags)
+	{
+		case MSG_CTRUNC:	ft_printf("msg_flags = MSG_CTRUNC\n");	break;
+		case MSG_EOR:		ft_printf("msg_flags = MSG_EOR\n");		break;
+		case MSG_OOB:		ft_printf("msg_flags = MSG_OOB\n");		break;
+		case MSG_TRUNC:		ft_printf("msg_flags = MSG_TRUNC\n");	break;
+		default:													break;
+	}
 	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->resp_addr_in.sin_addr,
 		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
@@ -139,10 +148,11 @@ static void	build_config(int argc, char **argv)
 	get_destinfo();
 	g_cfg->request.hdr.type = ICMP_ECHO;
 	g_cfg->request.hdr.un.echo.id = getpid();
+	g_cfg->iov.iov_base = (void *)g_cfg->iov_buffer;
+	g_cfg->iov.iov_len = MSG_BUFLEN;
 	g_cfg->response = (struct msghdr){
-		&g_cfg->resp_addr_in,
-		sizeof(struct sockaddr_in),
-		0, 0, 0, 0, 0
+		&g_cfg->resp_addr_in, sizeof(struct sockaddr_in), &g_cfg->iov, 1,
+		&g_cfg->msg_buffer, MSG_BUFLEN, 0
 	};
 }
 
