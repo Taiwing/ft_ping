@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 19:38:44 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 19:53:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,13 +47,14 @@ typedef struct			s_ping_packet
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
 ** dest_ip: ip string from inet_ntop
 ** request: ECHO_REQUEST packet to be sent
-** resp_addr_in: sockaddr_in response address
 ** resp_ip: ip string from inet_ntop
 ** iov_buffer: raw data read from socket
 ** iov: io vector (structure of buffers for recvmsg)
 ** msg_buffer: data passed through the kernel
 ** rd: number of bytes read from socket
 ** response: ECHO_REPLY response structure for recvmsg call
+** resp_ip_hdr: ip header cast of the reply packet
+** resp_icmp_hdr: icmp header cast of the reply packet
 */
 typedef struct			s_pingcfg
 {
@@ -64,7 +65,6 @@ typedef struct			s_pingcfg
 	struct sockaddr_in	*dest_addr_in;
 	char				dest_ip[INET_ADDRSTRLEN + 1];
 	t_ping_packet		request;
-	struct sockaddr_in	resp_addr_in;
 	char				resp_ip[INET_ADDRSTRLEN + 1];
 	char				iov_buffer[MSG_BUFLEN];
 	struct iovec		iov;

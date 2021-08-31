@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 19:46:36 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 19:56:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,7 +130,7 @@ static void	ping(int sockfd)
 		case MSG_TRUNC:		ft_printf("msg_flags = MSG_TRUNC\n");	break;
 		default:													break;
 	}
-	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->resp_addr_in.sin_addr,
+	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->resp_ip_hdr->ip_src.s_addr,
 		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
 	if (err)
@@ -150,8 +150,7 @@ static void	build_config(int argc, char **argv)
 	g_cfg->iov.iov_base = (void *)g_cfg->iov_buffer;
 	g_cfg->iov.iov_len = MSG_BUFLEN;
 	g_cfg->response = (struct msghdr){
-		&g_cfg->resp_addr_in, sizeof(struct sockaddr_in), &g_cfg->iov, 1,
-		&g_cfg->msg_buffer, MSG_BUFLEN, 0
+		NULL, 0, &g_cfg->iov, 1, &g_cfg->msg_buffer, MSG_BUFLEN, 0
 	};
 	g_cfg->resp_ip_hdr = (struct ip *)g_cfg->iov_buffer;
 	g_cfg->resp_icmp_hdr =
