@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 14:05:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 15:25:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,9 @@ static void	get_destinfo(void)
 	if ((ret = getaddrinfo(g_cfg->dest, NULL, NULL, &g_cfg->destinfo)))
 		ft_asprintf(&err, "%s: %s", g_cfg->dest, gai_strerror(ret));
 	if (!err)
-		g_cfg->addr_in = (struct sockaddr_in *)g_cfg->destinfo->ai_addr;
-	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->addr_in->sin_addr,
-		g_cfg->ip, INET_ADDRSTRLEN))
+		g_cfg->dest_addr_in = (struct sockaddr_in *)g_cfg->destinfo->ai_addr;
+	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->dest_addr_in->sin_addr,
+		g_cfg->dest_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
 	if (err)
 		ft_exit(err, EXIT_FAILURE);
@@ -110,9 +110,8 @@ static void	ping(int sockfd)
 	struct msghdr		response = { &respip, sizeof(respip), 0, 0, 0, 0, 0 };
 
 	err = NULL;
-	g_cfg->request.hdr.type = ICMP_ECHO;
-	g_cfg->request.hdr.un.echo.sequence = 1;
-	g_cfg->request.hdr.un.echo.id = getpid();
+	g_cfg->request.hdr.checksum = 0;
+	++g_cfg->request.hdr.un.echo.sequence;
 	ft_memset((void *)g_cfg->request.data, g_cfg->request.hdr.un.echo.sequence,
 		sizeof(g_cfg->request.data));
 	g_cfg->request.hdr.checksum =
@@ -134,6 +133,17 @@ static void	ping(int sockfd)
 	ft_printf("response ip: %s\n", response_ip);
 }
 
+static void	build_config(int argc, char **argv)
+{
+	g_cfg->exec_name = ft_exec_name(*argv);
+	ft_exitmsg((char *)g_cfg->exec_name);
+	if (!(g_cfg->dest = get_options(argc, argv)))
+		ft_exit("usage error: Destination address required", EXIT_FAILURE);
+	get_destinfo();
+	g_cfg->request.hdr.type = ICMP_ECHO;
+	g_cfg->request.hdr.un.echo.id = getpid();
+}
+
 t_pingcfg	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
@@ -143,14 +153,11 @@ int	main(int argc, char **argv)
 
 	g_cfg = &cfg;
 	ft_atexit(ping_cleanup);
-	g_cfg->exec_name = ft_exec_name(*argv);
-	ft_exitmsg((char *)g_cfg->exec_name);
-	if (!(g_cfg->dest = get_options(argc, argv)))
-		ft_exit("usage error: Destination address required", EXIT_FAILURE);
+	build_config(argc, argv);
 	//TODO: check ICMP socket permission with getuid
-	get_destinfo();
-	ft_printf("PING %s (%s) 56(84) bytes of data.\n", g_cfg->dest, g_cfg->ip);
 	sockfd = setup_socket();
+	ft_printf("PING %s (%s) 56(84) bytes of data.\n",
+		g_cfg->dest, g_cfg->dest_ip);
 	ping(sockfd);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
