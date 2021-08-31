@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 12:20:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 14:05:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,19 +42,20 @@ static void	get_destinfo(void)
 	char			*err;
 	struct addrinfo	hints;
 
+	err = NULL;
 	ft_bzero((void *)&hints, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_ICMP;
 	if ((ret = getaddrinfo(g_cfg->dest, NULL, NULL, &g_cfg->destinfo)))
-	{
 		ft_asprintf(&err, "%s: %s", g_cfg->dest, gai_strerror(ret));
-		ft_exit(err, EXIT_FAILURE);
-	}
-	g_cfg->addr_in = (struct sockaddr_in *)g_cfg->destinfo->ai_addr;
-	if (!inet_ntop(AF_INET, (void *)&g_cfg->addr_in->sin_addr,
+	if (!err)
+		g_cfg->addr_in = (struct sockaddr_in *)g_cfg->destinfo->ai_addr;
+	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->addr_in->sin_addr,
 		g_cfg->ip, INET_ADDRSTRLEN))
-		ft_exit("inet_ntop error", EXIT_FAILURE);
+		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
+	if (err)
+		ft_exit(err, EXIT_FAILURE);
 }
 
 static void	ping_cleanup(void)
@@ -103,9 +104,10 @@ static unsigned short	checksum(unsigned short *data, size_t sz)
 
 static void	ping(int sockfd)
 {
-	char			*err;
-	char			msg_name[INET_ADDRSTRLEN + 1] = { 0 };
-	struct msghdr	response = { msg_name, INET_ADDRSTRLEN, 0, 0, 0, 0, 0 };
+	char				*err;
+	struct sockaddr_in	respip;
+	char				response_ip[INET_ADDRSTRLEN + 1];
+	struct msghdr		response = { &respip, sizeof(respip), 0, 0, 0, 0, 0 };
 
 	err = NULL;
 	g_cfg->request.hdr.type = ICMP_ECHO;
@@ -124,9 +126,12 @@ static void	ping(int sockfd)
 		ft_asprintf(&err, "recvmsg: %s", strerror(errno));
 	else if (!err)
 		ft_printf("ICMP ECHO response received successfully\n");
+	if (!err && !inet_ntop(AF_INET, (void *)&respip.sin_addr,
+		(void *)response_ip, INET_ADDRSTRLEN))
+		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
 	if (err)
 		ft_exit(err, EXIT_FAILURE);
-	ft_printf("msg_name: %s\n", response.msg_name);
+	ft_printf("response ip: %s\n", response_ip);
 }
 
 t_pingcfg	*g_cfg = NULL;
@@ -142,7 +147,7 @@ int	main(int argc, char **argv)
 	ft_exitmsg((char *)g_cfg->exec_name);
 	if (!(g_cfg->dest = get_options(argc, argv)))
 		ft_exit("usage error: Destination address required", EXIT_FAILURE);
-	//TODO: check ICMP socket permission with getpid and getuid
+	//TODO: check ICMP socket permission with getuid
 	get_destinfo();
 	ft_printf("PING %s (%s) 56(84) bytes of data.\n", g_cfg->dest, g_cfg->ip);
 	sockfd = setup_socket();
