@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 15:25:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 15:34:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,9 +105,6 @@ static unsigned short	checksum(unsigned short *data, size_t sz)
 static void	ping(int sockfd)
 {
 	char				*err;
-	struct sockaddr_in	respip;
-	char				response_ip[INET_ADDRSTRLEN + 1];
-	struct msghdr		response = { &respip, sizeof(respip), 0, 0, 0, 0, 0 };
 
 	err = NULL;
 	g_cfg->request.hdr.checksum = 0;
@@ -121,16 +118,16 @@ static void	ping(int sockfd)
 		ft_asprintf(&err, "sendto: %s", strerror(errno));
 	else
 		ft_printf("ICMP ECHO packet sent successfully\n");
-	if (!err && recvmsg(sockfd, &response, 0) < 0)
+	if (!err && recvmsg(sockfd, &g_cfg->response, 0) < 0)
 		ft_asprintf(&err, "recvmsg: %s", strerror(errno));
 	else if (!err)
 		ft_printf("ICMP ECHO response received successfully\n");
-	if (!err && !inet_ntop(AF_INET, (void *)&respip.sin_addr,
-		(void *)response_ip, INET_ADDRSTRLEN))
+	if (!err && !inet_ntop(AF_INET, (void *)&g_cfg->resp_addr_in.sin_addr,
+		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&err, "inet_ntop: %s", strerror(errno));
 	if (err)
 		ft_exit(err, EXIT_FAILURE);
-	ft_printf("response ip: %s\n", response_ip);
+	ft_printf("response ip: %s\n", g_cfg->resp_ip);
 }
 
 static void	build_config(int argc, char **argv)
@@ -142,6 +139,11 @@ static void	build_config(int argc, char **argv)
 	get_destinfo();
 	g_cfg->request.hdr.type = ICMP_ECHO;
 	g_cfg->request.hdr.un.echo.id = getpid();
+	g_cfg->response = (struct msghdr){
+		&g_cfg->resp_addr_in,
+		sizeof(struct sockaddr_in),
+		0, 0, 0, 0, 0
+	};
 }
 
 t_pingcfg	*g_cfg = NULL;

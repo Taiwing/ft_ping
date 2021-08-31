@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 15:25:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 15:29:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,9 @@ typedef struct			s_pingcfg
 	struct sockaddr_in	*dest_addr_in;
 	char				dest_ip[INET_ADDRSTRLEN + 1];
 	t_ping_packet		request;
+	struct sockaddr_in	resp_addr_in;
+	char				resp_ip[INET_ADDRSTRLEN + 1];
+	struct msghdr		response;
 }						t_pingcfg;
 
 /*
