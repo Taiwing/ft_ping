@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 19:56:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 22:02:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,10 +167,12 @@ int	main(int argc, char **argv)
 	g_cfg = &cfg;
 	ft_atexit(ping_cleanup);
 	build_config(argc, argv);
-	//TODO: check ICMP socket permission with getuid
+	if (getuid())
+		ft_exit("user is not root", EXIT_FAILURE);
 	sockfd = setup_socket();
-	ft_printf("PING %s (%s) 56(84) bytes of data.\n",
-		g_cfg->dest, g_cfg->dest_ip);
+	ft_printf("PING %s (%s) %zu(%zu) bytes of data.\n", g_cfg->dest,
+		g_cfg->dest_ip, sizeof(g_cfg->request.data),
+		sizeof(g_cfg->request) + sizeof(struct ip));
 	ping(sockfd);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
