@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 19:53:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 22:39:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,9 @@ typedef struct			s_ping_packet
 ** response: ECHO_REPLY response structure for recvmsg call
 ** resp_ip_hdr: ip header cast of the reply packet
 ** resp_icmp_hdr: icmp header cast of the reply packet
+** sent: number of packets successfully sent
+** received: number of packets successfully received
+** err: error string (will exit if set)
 */
 typedef struct			s_pingcfg
 {
@@ -73,6 +76,9 @@ typedef struct			s_pingcfg
 	struct msghdr		response;
 	struct ip			*resp_ip_hdr;
 	struct icmphdr		*resp_icmp_hdr;
+	unsigned int		sent;
+	unsigned int		received;
+	char				*err;
 }						t_pingcfg;
 
 /*
