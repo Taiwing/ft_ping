@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 21:22:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 11:56:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,21 @@
 # include <netinet/ip_icmp.h>
 # include <errno.h>
 
+# define	PINGPACK_SIZE	64
+
+/*
+** Ping packet structure
+**
+** hdr: icmp header structure
+** data: data buffer
+*/
+
+typedef struct			s_ping_packet
+{
+	struct icmphdr		hdr;
+	char				data[PINGPACK_SIZE - sizeof(struct icmphdr)];
+}						t_ping_packet;
+
 /*
 ** Ping configuration structure
 **
@@ -28,6 +43,7 @@
 ** destinfo: result of getaddrinfo call (to be freed)
 ** addr_in: sockaddr_in cast of sockaddr pointer
 ** ip: ip string from inet_ntop
+** request: ECHO_REQUEST packet to be sent
 */
 typedef struct			s_pingcfg
 {
@@ -37,6 +53,7 @@ typedef struct			s_pingcfg
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*addr_in;
 	char				ip[INET_ADDRSTRLEN + 1];
+	t_ping_packet		request;
 }						t_pingcfg;
 
 /*
@@ -48,6 +65,7 @@ extern t_pingcfg		*g_cfg;
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
 	"\t-h\t\t\tprint help and exit\n\t-v\t\t\tverbose output\n"
-# define	REQBUF			64
+# define	PING_TTL		255
+# define	PING_TIMEOUT	5
 
 #endif

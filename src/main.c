@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/30 21:54:17 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 12:20:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,22 +63,69 @@ static void	ping_cleanup(void)
 		freeaddrinfo(g_cfg->destinfo);
 }
 
+static int	setup_socket(void)
+{
+	int				ttl;
+	char			*err;
+	int				sockfd;
+	struct timeval	timeout;
+
+	err = NULL;
+	ttl = PING_TTL;
+	timeout.tv_usec = 0;
+	timeout.tv_sec = PING_TIMEOUT;
+	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
+		ft_asprintf(&err, "socket: %s", strerror(errno));
+	if (!err && (setsockopt(sockfd, SOL_IP, IP_TTL, (void *)&ttl,
+		sizeof(int)) < 0 || setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,
+		(void *)&timeout, sizeof(struct timeval)) < 0))
+		ft_asprintf(&err, "setsockopt: %s", strerror(errno));
+	if (err)
+		ft_exit(err, EXIT_FAILURE);
+	ft_printf("SOCKET created successfully\n");
+	return (sockfd);
+}
+
+static unsigned short	checksum(unsigned short *data, size_t sz)
+{
+	uint32_t		sum;
+	unsigned short	res;
+
+	for (sum = 0; sz >= sizeof(unsigned short); sz -= sizeof(unsigned short))
+		sum += *data++;
+	if (sz)
+		sum += *((unsigned char *)data);
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	res = (unsigned short)~sum;
+	return (res);
+}
+
 static void	ping(int sockfd)
 {
-	struct icmphdr	icmp = { 0 };
-	char			request[REQBUF] = { 0 };
+	char			*err;
 	char			msg_name[INET_ADDRSTRLEN + 1] = { 0 };
 	struct msghdr	response = { msg_name, INET_ADDRSTRLEN, 0, 0, 0, 0, 0 };
 
-	icmp.type = ICMP_ECHO;
-	ft_memcpy((void *)request, (void *)&icmp, sizeof(struct icmphdr));
-	if (sendto(sockfd, request, REQBUF, 0,
+	err = NULL;
+	g_cfg->request.hdr.type = ICMP_ECHO;
+	g_cfg->request.hdr.un.echo.sequence = 1;
+	g_cfg->request.hdr.un.echo.id = getpid();
+	ft_memset((void *)g_cfg->request.data, g_cfg->request.hdr.un.echo.sequence,
+		sizeof(g_cfg->request.data));
+	g_cfg->request.hdr.checksum =
+		checksum((void *)&g_cfg->request, sizeof(t_ping_packet));
+	if (sendto(sockfd, (void *)&g_cfg->request, sizeof(t_ping_packet), 0,
 		g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
-		ft_exit(strerror(errno), EXIT_FAILURE);
-	ft_printf("ICMP ECHO packet sent successfully\n");
-	if (recvmsg(sockfd, &response, 0) < 0)
-		ft_exit(strerror(errno), EXIT_FAILURE);
-	ft_printf("ICMP ECHO response received successfully\n");
+		ft_asprintf(&err, "sendto: %s", strerror(errno));
+	else
+		ft_printf("ICMP ECHO packet sent successfully\n");
+	if (!err && recvmsg(sockfd, &response, 0) < 0)
+		ft_asprintf(&err, "recvmsg: %s", strerror(errno));
+	else if (!err)
+		ft_printf("ICMP ECHO response received successfully\n");
+	if (err)
+		ft_exit(err, EXIT_FAILURE);
 	ft_printf("msg_name: %s\n", response.msg_name);
 }
 
@@ -98,8 +145,7 @@ int	main(int argc, char **argv)
 	//TODO: check ICMP socket permission with getpid and getuid
 	get_destinfo();
 	ft_printf("PING %s (%s) 56(84) bytes of data.\n", g_cfg->dest, g_cfg->ip);
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)) < 0)
-		ft_exit(strerror(errno), EXIT_FAILURE);
+	sockfd = setup_socket();
 	ping(sockfd);
 	ft_exit(NULL, EXIT_SUCCESS);
 	return (EXIT_SUCCESS);
