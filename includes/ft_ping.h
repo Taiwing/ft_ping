@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 17:43:12 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 19:38:44 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <netdb.h>
 # include <arpa/inet.h>
 # include <netinet/ip_icmp.h>
+# include <netinet/ip.h>
 # include <errno.h>
 
 # define	PINGPACK_SIZE	64
@@ -70,6 +71,8 @@ typedef struct			s_pingcfg
 	char				msg_buffer[MSG_BUFLEN];
 	ssize_t				rd;
 	struct msghdr		response;
+	struct ip			*resp_ip_hdr;
+	struct icmphdr		*resp_icmp_hdr;
 }						t_pingcfg;
 
 /*

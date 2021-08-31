@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 17:40:26 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/08/31 19:46:36 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,9 +108,8 @@ static void	ping(int sockfd)
 
 	err = NULL;
 	g_cfg->request.hdr.checksum = 0;
-	++g_cfg->request.hdr.un.echo.sequence;
-	ft_memset((void *)g_cfg->request.data, g_cfg->request.hdr.un.echo.sequence,
-		sizeof(g_cfg->request.data));
+	//++g_cfg->request.hdr.un.echo.sequence;
+	g_cfg->request.hdr.un.echo.sequence = 321; //TEST
 	g_cfg->request.hdr.checksum =
 		checksum((void *)&g_cfg->request, sizeof(t_ping_packet));
 	if (sendto(sockfd, (void *)&g_cfg->request, sizeof(t_ping_packet), 0,
@@ -154,6 +153,9 @@ static void	build_config(int argc, char **argv)
 		&g_cfg->resp_addr_in, sizeof(struct sockaddr_in), &g_cfg->iov, 1,
 		&g_cfg->msg_buffer, MSG_BUFLEN, 0
 	};
+	g_cfg->resp_ip_hdr = (struct ip *)g_cfg->iov_buffer;
+	g_cfg->resp_icmp_hdr =
+		(struct icmphdr *)(g_cfg->iov_buffer + sizeof(struct ip));
 }
 
 t_pingcfg	*g_cfg = NULL;
