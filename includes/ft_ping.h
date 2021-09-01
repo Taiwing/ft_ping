@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 14:01:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 15:19:23 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,14 +47,14 @@ typedef struct			s_ping_packet
 ** verbose: boolean set to 1 if verbose mode is on
 ** destinfo: result of getaddrinfo call (to be freed)
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
-** dest_ip: ip string from inet_ntop
-** request: ECHO_REQUEST packet to be sent
-** resp_ip: ip string from inet_ntop
 ** iov_buffer: raw data read from socket
-** iov: io vector (structure of buffers for recvmsg)
 ** msg_buffer: data passed through the kernel
-** rd: number of bytes read from socket
+** request: ECHO_REQUEST packet to be sent
 ** response: ECHO_REPLY response structure for recvmsg call
+** dest_ip: ip string from inet_ntop
+** resp_ip: ip string from inet_ntop
+** iov: io vector (structure of buffers for recvmsg)
+** rd: number of bytes read from socket
 ** resp_ip_hdr: ip header cast of the reply packet
 ** resp_icmp_hdr: icmp header cast of the reply packet
 ** sent: number of packets successfully sent
@@ -79,14 +79,14 @@ typedef struct			s_pingcfg
 	int					verbose;
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*dest_addr_in;
-	char				dest_ip[INET_ADDRSTRLEN + 1];
-	t_ping_packet		request;
-	char				resp_ip[INET_ADDRSTRLEN + 1];
 	char				iov_buffer[MSG_BUFLEN];
-	struct iovec		iov;
 	char				msg_buffer[MSG_BUFLEN];
-	ssize_t				rd;
+	t_ping_packet		request;
 	struct msghdr		response;
+	char				dest_ip[INET_ADDRSTRLEN + 1];
+	char				resp_ip[INET_ADDRSTRLEN + 1];
+	struct iovec		iov;
+	ssize_t				rd;
 	struct ip			*resp_ip_hdr;
 	struct icmphdr		*resp_icmp_hdr;
 	unsigned int		sent;
