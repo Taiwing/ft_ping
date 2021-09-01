@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 14:51:55 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 15:04:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,23 +234,6 @@ static void	ping_cleanup(void)
 {
 	if (g_cfg->destinfo)
 		freeaddrinfo(g_cfg->destinfo);
-}
-
-/*
-** ft_sqrt: approximate square root of y with the Babylonian method
-**
-** TODO: put this in libft
-*/
-static double	ft_sqrt(double y)
-{
-	double	est;
-
-	if (y <= 0.0)
-		return (0.0);
-	est = y / 2;
-	for (int i = 0; i < 10; ++i)
-		est = (est + y / est) / 2;
-	return (est);
 }
 
 static void	ping_int_handler(int sig)
