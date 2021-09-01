@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 15:19:23 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 15:28:58 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ typedef struct			s_ping_packet
 **
 ** exec_name: name of the ft_ping executable
 ** dest: destination given by user
+** dest_is_ip: boolean set to 1 if dest is an IP
 ** verbose: boolean set to 1 if verbose mode is on
 ** destinfo: result of getaddrinfo call (to be freed)
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
@@ -76,6 +77,7 @@ typedef struct			s_pingcfg
 {
 	const char			*exec_name;
 	const char			*dest;
+	int					dest_is_ip;
 	int					verbose;
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*dest_addr_in;

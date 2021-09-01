@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 15:22:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 15:42:14 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,11 +146,12 @@ static void	print_echo_reply(int rep_err)
 		g_cfg->max_ms = time > g_cfg->max_ms ? time : g_cfg->max_ms;
 		g_cfg->sum_ms += time;
 		g_cfg->ssum_ms += time * time;
-		//if input dest is IP
-		ft_printf("%zd bytes from %s: ", g_cfg->rd - sizeof(struct ip),
-			g_cfg->resp_ip);
-		//TODO: else print hostname or FDQN shit
-		ft_printf("icmp_seq=%hu ttl=%hhu time=%.*f ms\n",
+		//TODO: if !dest_is_ip handle FDQN shit
+		ft_printf("%zd bytes from %s", g_cfg->rd - sizeof(struct ip),
+			g_cfg->dest);
+		if (!g_cfg->dest_is_ip)
+			ft_printf(" (%s)", g_cfg->resp_ip);
+		ft_printf(": icmp_seq=%hu ttl=%hhu time=%.*f ms\n",
 			g_cfg->resp_icmp_hdr->un.echo.sequence, g_cfg->resp_ip_hdr->ip_ttl,
 			time, 3 - (time >= 1.0) - (time >= 10.0) - (time >= 100.0));
 	}
@@ -211,12 +212,16 @@ static void	ping(int sig)
 
 static void	build_config(int argc, char **argv)
 {
+	char	buf[sizeof(struct in_addr)];
+
 	g_cfg->exec_name = ft_exec_name(*argv);
 	ft_exitmsg((char *)g_cfg->exec_name);
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
 	if (!(g_cfg->dest = get_options(argc, argv)))
 		ft_exit("usage error: Destination address required", EXIT_FAILURE);
+	if ((g_cfg->dest_is_ip = inet_pton(AF_INET, g_cfg->dest, (void *)buf)) < 0)
+		ft_asprintf(&g_cfg->err, "inet_pton: %s", strerror(errno));
 	get_destinfo();
 	g_cfg->request.hdr.type = ICMP_ECHO;
 	g_cfg->request.hdr.un.echo.id = getpid();
