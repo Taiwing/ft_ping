@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 02:08:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 02:42:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,24 +115,19 @@ static void	echo_request(int sockfd)
 
 static unsigned int	reply_error(void)
 {
-	unsigned int	ret;
-	unsigned short	sum;
-	unsigned short	len;
-	struct ip		*ip;
-	struct icmphdr	*icmp;
+	struct ip		*ip = g_cfg->resp_ip_hdr;
+	struct icmphdr	*icmp = g_cfg->resp_icmp_hdr;
+	unsigned short	sum = ip->ip_sum;
+	unsigned short	len = ip->ip_len;
+	unsigned int	ret = 0;
 
-	ret = 0;
-	ip = g_cfg->resp_ip_hdr;
-	sum = ip->ip_sum;
 	ip->ip_sum = 0;
-	len = ip->ip_len;
 	ft_memswap((void *)&len, sizeof(len));
 	if (ip->ip_hl != 5 || ip->ip_v != 4 || ip->ip_p != 1 || len < sizeof(*ip)
 		|| sum != checksum((unsigned short *)ip, sizeof(*ip)))
 		return (PING_IP_HDR);
 	if (ip->ip_src.s_addr != g_cfg->dest_addr_in->sin_addr.s_addr)
 		ret |= PING_IP_SOURCE;
-	icmp = g_cfg->resp_icmp_hdr;
 	sum = icmp->checksum;
 	icmp->checksum = 0;
 	len -= sizeof(*ip);
@@ -145,7 +140,13 @@ static void	echo_reply(int sockfd)
 {
 	int	rep_err;
 
+	ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
 	if (!g_cfg->err && (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
+		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
+	else if (!g_cfg->err && g_cfg->resp_icmp_hdr->type == ICMP_ECHO
+		&& !ft_memcmp((void *)&g_cfg->request, (void *)g_cfg->resp_icmp_hdr,
+		sizeof(g_cfg->request))
+		&& (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
 		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
 	else if (!g_cfg->err && !(rep_err = reply_error()))
 		++g_cfg->received;
