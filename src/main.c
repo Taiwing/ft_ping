@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 03:50:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 03:54:10 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,7 +201,6 @@ static void	ping_int_handler(int sig)
 	unsigned int	loss;
 
 	(void)sig;
-	alarm(0);
 	loss = 0;
 	if (g_cfg->sent)
 		loss = 100
