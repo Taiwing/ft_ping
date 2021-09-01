@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 15:04:20 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 15:22:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,8 +249,8 @@ static void	ping_int_handler(int sig)
 	time = (g_cfg->end_ts.tv_sec - g_cfg->start_ts.tv_sec) * 1000;
 	time += (g_cfg->end_ts.tv_usec - g_cfg->start_ts.tv_usec) / 1000;
 	ft_printf("\n--- %s ping statistics ---\n%u packets transmitted, "
-		"%u received, %u%% packet loss, time %llums\n", g_cfg->dest, g_cfg->sent,
-		g_cfg->received, loss, time);
+		"%u received, %u%% packet loss, time %llums\n", g_cfg->dest,
+		g_cfg->sent, g_cfg->received, loss, time);
 	if (g_cfg->received)
 	{
 		g_cfg->avg_ms = g_cfg->sum_ms / (double)g_cfg->received;
