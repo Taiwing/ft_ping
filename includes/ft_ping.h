@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 03:40:05 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 04:13:59 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <arpa/inet.h>
 # include <netinet/ip_icmp.h>
 # include <netinet/ip.h>
+# include <sys/time.h>
 # include <errno.h>
 
 # define	PINGPACK_SIZE	64
@@ -82,6 +83,8 @@ typedef struct			s_pingcfg
 	unsigned int		received;
 	char				*err;
 	int					sockfd;
+	struct timeval		start;
+	struct timeval		end;
 }						t_pingcfg;
 
 /*

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 03:54:10 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 04:28:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,9 +164,17 @@ static void	ping(int sig)
 	(void)sig;
 	echo_request(g_cfg->sockfd);
 	echo_reply(g_cfg->sockfd);
-	if (g_cfg->err)
+	if (!g_cfg->err && gettimeofday(&g_cfg->end, NULL) < 0)
+		ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
+	else if (!g_cfg->err)
+	{
+		alarm(1);
+		if (!g_cfg->start.tv_sec && !g_cfg->start.tv_usec)
+			ft_memcpy((void *)&g_cfg->start,
+				(void *)&g_cfg->end, sizeof(struct timeval));
+	}
+	else
 		ft_exit(g_cfg->err, EXIT_FAILURE);
-	alarm(1);
 }
 
 static void	build_config(int argc, char **argv)
@@ -198,6 +206,7 @@ static void	ping_cleanup(void)
 
 static void	ping_int_handler(int sig)
 {
+	uint64_t		time;
 	unsigned int	loss;
 
 	(void)sig;
@@ -205,9 +214,11 @@ static void	ping_int_handler(int sig)
 	if (g_cfg->sent)
 		loss = 100
 		- (unsigned int)(100 * ((double)g_cfg->received/(double)g_cfg->sent));
+	time = (g_cfg->end.tv_sec - g_cfg->start.tv_sec) * 1000;
+	time += (g_cfg->end.tv_usec - g_cfg->start.tv_usec) / 1000;
 	ft_printf("\n--- %s ping statistics ---\n%u packets transmitted, "
-		"%u received, %u%% packet loss, %u time\n", g_cfg->dest, g_cfg->sent,
-		g_cfg->received, loss, 0);
+		"%u received, %u%% packet loss, time %llums\n", g_cfg->dest, g_cfg->sent,
+		g_cfg->received, loss, time);
 	ft_exit(NULL, EXIT_SUCCESS);
 }
 
