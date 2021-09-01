@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 22:46:47 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 02:00:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,14 +100,7 @@ static unsigned short	checksum(unsigned short *data, size_t sz)
 	return (res);
 }
 
-/*
 static void	echo_request(int sockfd)
-{
-
-}
-*/
-
-static void	ping(int sockfd)
 {
 	g_cfg->request.hdr.checksum = 0;
 	++g_cfg->request.hdr.un.echo.sequence;
@@ -118,17 +111,66 @@ static void	ping(int sockfd)
 		ft_asprintf(&g_cfg->err, "sendto: %s", strerror(errno));
 	else
 		++g_cfg->sent;
+}
+
+static unsigned int	reply_error(void)
+{
+	unsigned int	ret;
+	unsigned short	sum;
+	unsigned short	len;
+	struct ip		*ip;
+	struct icmphdr	*icmp;
+
+	ret = 0;
+	ip = g_cfg->resp_ip_hdr;
+	sum = ip->ip_sum;
+	ip->ip_sum = 0;
+	len = ip->ip_len;
+	ft_memswap((void *)&len, sizeof(len));
+	if (ip->ip_hl != 5 || ip->ip_v != 4 || ip->ip_p != 1 || len < sizeof(*ip)
+		|| sum != checksum((unsigned short *)ip, sizeof(*ip)))
+		return (PING_IP_HDR);
+	if (ip->ip_src.s_addr != g_cfg->dest_addr_in->sin_addr.s_addr)
+		ret |= PING_IP_SOURCE;
+	icmp = g_cfg->resp_icmp_hdr;
+	sum = icmp->checksum;
+	icmp->checksum = 0;
+	len -= sizeof(*ip);
+	if (len < sizeof (*icmp) || sum != checksum((unsigned short *)icmp, len))
+		ret |= PING_ICMP_HDR;
+	return (icmp->type ? ret | PING_ICMP_TYPE : ret);
+}
+
+static void	echo_reply(int sockfd)
+{
+	int	rep_err;
+
 	if (!g_cfg->err && (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
 		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
-	else if (!g_cfg->err)
+	else if (!g_cfg->err && !(rep_err = reply_error()))
 		++g_cfg->received;
 	if (!g_cfg->err && !inet_ntop(AF_INET,
 		(void *)&g_cfg->resp_ip_hdr->ip_src.s_addr,
 		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
+	ft_printf("response ip: %s\n", g_cfg->resp_ip);
+	if (rep_err & PING_IP_HDR)
+		ft_printf("PING_IP_HDR\n");
+	if (rep_err & PING_IP_SOURCE)
+		ft_printf("PING_IP_SOURCE\n");
+	if (rep_err & PING_ICMP_HDR)
+		ft_printf("PING_ICMP_HDR\n");
+	if (rep_err & PING_ICMP_TYPE)
+		ft_printf("PING_ICMP_TYPE\n");
+}
+
+static void	ping(int sockfd)
+{
+	echo_request(sockfd);
+	echo_reply(sockfd);
+	echo_reply(sockfd);
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
-	ft_printf("response ip: %s\n", g_cfg->resp_ip);
 }
 
 static void	build_config(int argc, char **argv)

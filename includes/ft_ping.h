@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/08/31 22:39:44 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 00:57:38 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,11 +86,24 @@ typedef struct			s_pingcfg
 */
 extern t_pingcfg		*g_cfg;
 
+/*
+** Ping macros
+*/
 # define	FT_PING_OPT		"vh"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
 	"\t-h\t\t\tprint help and exit\n\t-v\t\t\tverbose output\n"
 # define	PING_TTL		255
 # define	PING_TIMEOUT	5
+
+/*
+** Ping reply errors
+*/
+enum e_ping_errors {
+	PING_IP_HDR		= 0x01,
+	PING_IP_SOURCE	= 0x02,
+	PING_ICMP_HDR	= 0x04,
+	PING_ICMP_TYPE	= 0x08,
+};
 
 #endif
