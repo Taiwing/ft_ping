@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 04:28:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 14:51:55 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,7 @@ static void	get_destinfo(void)
 
 	ft_bzero((void *)&hints, sizeof(struct addrinfo));
 	hints.ai_family = AF_INET;
-	//TODO: change SOCK_DGRAM to SOCK_RAW
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_socktype = SOCK_RAW;
 	hints.ai_protocol = IPPROTO_ICMP;
 	if ((ret = getaddrinfo(g_cfg->dest, NULL, NULL, &g_cfg->destinfo)))
 		ft_asprintf(&g_cfg->err, "%s: %s", g_cfg->dest, gai_strerror(ret));
@@ -104,7 +103,11 @@ static void	echo_request(int sockfd)
 		g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
 		ft_asprintf(&g_cfg->err, "sendto: %s", strerror(errno));
 	else
+	{
 		++g_cfg->sent;
+		if (gettimeofday(&g_cfg->sent_ts, NULL) < 0)
+			ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
+	}
 }
 
 static unsigned int	reply_error(void)
@@ -130,25 +133,27 @@ static unsigned int	reply_error(void)
 	return (icmp->type ? ret | PING_ICMP_TYPE : ret);
 }
 
-static void	echo_reply(int sockfd)
+static void	print_echo_reply(int rep_err)
 {
-	int	rep_err;
+	double		time = 0.0;
 
-	ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
-	if (!g_cfg->err && (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
-		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
-	else if (!g_cfg->err && g_cfg->resp_icmp_hdr->type == ICMP_ECHO
-		&& !ft_memcmp((void *)&g_cfg->request, (void *)g_cfg->resp_icmp_hdr,
-		sizeof(g_cfg->request))
-		&& (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
-		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
-	else if (!g_cfg->err && !(rep_err = reply_error()))
-		++g_cfg->received;
-	if (!g_cfg->err && !inet_ntop(AF_INET,
-		(void *)&g_cfg->resp_ip_hdr->ip_src.s_addr,
-		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
-		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
-	ft_printf("response ip: %s\n", g_cfg->resp_ip);
+	time = (double)(g_cfg->received_ts.tv_sec - g_cfg->sent_ts.tv_sec) * 1000
+		+ (double)(g_cfg->received_ts.tv_usec - g_cfg->sent_ts.tv_usec) / 1000;
+	if (!rep_err)
+	{
+		g_cfg->min_ms = time < g_cfg->min_ms || g_cfg->received == 1 ?
+			time : g_cfg->min_ms;
+		g_cfg->max_ms = time > g_cfg->max_ms ? time : g_cfg->max_ms;
+		g_cfg->sum_ms += time;
+		g_cfg->ssum_ms += time * time;
+		//if input dest is IP
+		ft_printf("%zd bytes from %s: ", g_cfg->rd - sizeof(struct ip),
+			g_cfg->resp_ip);
+		//TODO: else print hostname or FDQN shit
+		ft_printf("icmp_seq=%hu ttl=%hhu time=%.*f ms\n",
+			g_cfg->resp_icmp_hdr->un.echo.sequence, g_cfg->resp_ip_hdr->ip_ttl,
+			time, 3 - (time >= 1.0) - (time >= 10.0) - (time >= 100.0));
+	}
 	if (rep_err & PING_IP_HDR)
 		ft_printf("PING_IP_HDR\n");
 	if (rep_err & PING_IP_SOURCE)
@@ -159,19 +164,46 @@ static void	echo_reply(int sockfd)
 		ft_printf("PING_ICMP_TYPE\n");
 }
 
+static void	echo_reply(int sockfd)
+{
+	int			rep_err = 0;
+
+	ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
+	if ((g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
+		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
+	else if (g_cfg->resp_icmp_hdr->type == ICMP_ECHO
+		&& !ft_memcmp((void *)&g_cfg->request, (void *)g_cfg->resp_icmp_hdr,
+		sizeof(g_cfg->request))
+		&& (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
+		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
+	else if (!(rep_err = reply_error()))
+	{
+		++g_cfg->received;
+		if (gettimeofday(&g_cfg->received_ts, NULL) < 0)
+			ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
+	}
+	if (!g_cfg->err && !inet_ntop(AF_INET,
+		(void *)&g_cfg->resp_ip_hdr->ip_src.s_addr,
+		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
+		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
+	if (!g_cfg->err)
+		print_echo_reply(rep_err);
+}
+
 static void	ping(int sig)
 {
 	(void)sig;
 	echo_request(g_cfg->sockfd);
-	echo_reply(g_cfg->sockfd);
-	if (!g_cfg->err && gettimeofday(&g_cfg->end, NULL) < 0)
+	if (!g_cfg->err)
+		echo_reply(g_cfg->sockfd);
+	if (!g_cfg->err && gettimeofday(&g_cfg->end_ts, NULL) < 0)
 		ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
 	else if (!g_cfg->err)
 	{
 		alarm(1);
-		if (!g_cfg->start.tv_sec && !g_cfg->start.tv_usec)
-			ft_memcpy((void *)&g_cfg->start,
-				(void *)&g_cfg->end, sizeof(struct timeval));
+		if (!g_cfg->start_ts.tv_sec && !g_cfg->start_ts.tv_usec)
+			ft_memcpy((void *)&g_cfg->start_ts,
+				(void *)&g_cfg->end_ts, sizeof(struct timeval));
 	}
 	else
 		ft_exit(g_cfg->err, EXIT_FAILURE);
@@ -204,6 +236,23 @@ static void	ping_cleanup(void)
 		freeaddrinfo(g_cfg->destinfo);
 }
 
+/*
+** ft_sqrt: approximate square root of y with the Babylonian method
+**
+** TODO: put this in libft
+*/
+static double	ft_sqrt(double y)
+{
+	double	est;
+
+	if (y <= 0.0)
+		return (0.0);
+	est = y / 2;
+	for (int i = 0; i < 10; ++i)
+		est = (est + y / est) / 2;
+	return (est);
+}
+
 static void	ping_int_handler(int sig)
 {
 	uint64_t		time;
@@ -214,11 +263,19 @@ static void	ping_int_handler(int sig)
 	if (g_cfg->sent)
 		loss = 100
 		- (unsigned int)(100 * ((double)g_cfg->received/(double)g_cfg->sent));
-	time = (g_cfg->end.tv_sec - g_cfg->start.tv_sec) * 1000;
-	time += (g_cfg->end.tv_usec - g_cfg->start.tv_usec) / 1000;
+	time = (g_cfg->end_ts.tv_sec - g_cfg->start_ts.tv_sec) * 1000;
+	time += (g_cfg->end_ts.tv_usec - g_cfg->start_ts.tv_usec) / 1000;
 	ft_printf("\n--- %s ping statistics ---\n%u packets transmitted, "
 		"%u received, %u%% packet loss, time %llums\n", g_cfg->dest, g_cfg->sent,
 		g_cfg->received, loss, time);
+	if (g_cfg->received)
+	{
+		g_cfg->avg_ms = g_cfg->sum_ms / (double)g_cfg->received;
+		g_cfg->mdev_ms = ft_sqrt(g_cfg->ssum_ms / g_cfg->received
+			- g_cfg->avg_ms * g_cfg->avg_ms);
+		ft_printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
+			g_cfg->min_ms, g_cfg->avg_ms, g_cfg->max_ms, g_cfg->mdev_ms);
+	}
 	ft_exit(NULL, EXIT_SUCCESS);
 }
 
