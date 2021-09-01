@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 02:00:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 02:08:20 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,6 @@ static void	echo_reply(int sockfd)
 static void	ping(int sockfd)
 {
 	echo_request(sockfd);
-	echo_reply(sockfd);
 	echo_reply(sockfd);
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
