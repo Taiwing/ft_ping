@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 02:42:59 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 03:50:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,6 @@ static void	get_destinfo(void)
 		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
-}
-
-static void	ping_cleanup(void)
-{
-	if (g_cfg->destinfo)
-		freeaddrinfo(g_cfg->destinfo);
 }
 
 static int	setup_socket(void)
@@ -165,18 +159,22 @@ static void	echo_reply(int sockfd)
 		ft_printf("PING_ICMP_TYPE\n");
 }
 
-static void	ping(int sockfd)
+static void	ping(int sig)
 {
-	echo_request(sockfd);
-	echo_reply(sockfd);
+	(void)sig;
+	echo_request(g_cfg->sockfd);
+	echo_reply(g_cfg->sockfd);
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
+	alarm(1);
 }
 
 static void	build_config(int argc, char **argv)
 {
 	g_cfg->exec_name = ft_exec_name(*argv);
 	ft_exitmsg((char *)g_cfg->exec_name);
+	if (g_cfg->err)
+		ft_exit(g_cfg->err, EXIT_FAILURE);
 	if (!(g_cfg->dest = get_options(argc, argv)))
 		ft_exit("usage error: Destination address required", EXIT_FAILURE);
 	get_destinfo();
@@ -192,23 +190,48 @@ static void	build_config(int argc, char **argv)
 		(struct icmphdr *)(g_cfg->iov_buffer + sizeof(struct ip));
 }
 
+static void	ping_cleanup(void)
+{
+	if (g_cfg->destinfo)
+		freeaddrinfo(g_cfg->destinfo);
+}
+
+static void	ping_int_handler(int sig)
+{
+	unsigned int	loss;
+
+	(void)sig;
+	alarm(0);
+	loss = 0;
+	if (g_cfg->sent)
+		loss = 100
+		- (unsigned int)(100 * ((double)g_cfg->received/(double)g_cfg->sent));
+	ft_printf("\n--- %s ping statistics ---\n%u packets transmitted, "
+		"%u received, %u%% packet loss, %u time\n", g_cfg->dest, g_cfg->sent,
+		g_cfg->received, loss, 0);
+	ft_exit(NULL, EXIT_SUCCESS);
+}
+
 t_pingcfg	*g_cfg = NULL;
 
 int	main(int argc, char **argv)
 {
-	int			sockfd;
 	t_pingcfg	cfg = { 0 };
 
 	g_cfg = &cfg;
 	ft_atexit(ping_cleanup);
+	if (signal(SIGINT, ping_int_handler) == SIG_ERR)
+		ft_asprintf(&g_cfg->err, "signal: %s", strerror(errno));
+	else if (signal(SIGALRM, ping) == SIG_ERR)
+		ft_asprintf(&g_cfg->err, "signal: %s", strerror(errno));
 	build_config(argc, argv);
 	if (getuid())
 		ft_exit("user is not root", EXIT_FAILURE);
-	sockfd = setup_socket();
+	g_cfg->sockfd = setup_socket();
 	ft_printf("PING %s (%s) %zu(%zu) bytes of data.\n", g_cfg->dest,
 		g_cfg->dest_ip, sizeof(g_cfg->request.data),
 		sizeof(g_cfg->request) + sizeof(struct ip));
-	ping(sockfd);
-	ft_exit(NULL, EXIT_SUCCESS);
+	ping(0);
+	while (42);
 	return (EXIT_SUCCESS);
 }

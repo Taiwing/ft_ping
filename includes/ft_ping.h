@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 00:57:38 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/01 03:40:05 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define FT_PING_H
 
 # include "libft.h"
+# include <signal.h>
 # include <netdb.h>
 # include <arpa/inet.h>
 # include <netinet/ip_icmp.h>
@@ -58,6 +59,7 @@ typedef struct			s_ping_packet
 ** sent: number of packets successfully sent
 ** received: number of packets successfully received
 ** err: error string (will exit if set)
+** sockfd: file descriptor of socket
 */
 typedef struct			s_pingcfg
 {
@@ -79,6 +81,7 @@ typedef struct			s_pingcfg
 	unsigned int		sent;
 	unsigned int		received;
 	char				*err;
+	int					sockfd;
 }						t_pingcfg;
 
 /*
