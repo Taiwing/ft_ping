@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 16:59:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 17:53:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,8 +26,9 @@ static char	*get_options(int argc, char **argv)
 	while ((opt = ft_getopt(argc, args, &optd)) >= 0)
 		switch (opt)
 		{
-			case 't':	g_cfg->ttl_arg = optd.optarg;	break;
-			case 'v':	++g_cfg->verbose;				break;
+			case 'W':	g_cfg->timeout_arg = optd.optarg;	break;
+			case 't':	g_cfg->ttl_arg = optd.optarg;		break;
+			case 'v':	++g_cfg->verbose;					break;
 			default:
 				ft_printf(FT_PING_HELP, g_cfg->exec_name);
 				ft_exit(NULL, opt != 'h');
@@ -66,6 +67,8 @@ static int	setup_socket(void)
 	ttl = g_cfg->ttl_arg ? ft_atoi(g_cfg->ttl_arg) : PING_TTL;
 	timeout.tv_usec = 0;
 	timeout.tv_sec = PING_TIMEOUT;
+	timeout.tv_sec = g_cfg->timeout_arg ?
+		atoi(g_cfg->timeout_arg) : PING_TIMEOUT;
 	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
 		ft_asprintf(&g_cfg->err, "socket: %s", strerror(errno));
 	if (!g_cfg->err && (setsockopt(sockfd, SOL_IP, IP_TTL, (void *)&ttl,

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 17:04:21 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 17:55:48 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ typedef struct			s_ping_packet
 ** exec_name: name of the ft_ping executable
 ** dest: destination given by user
 ** dest_is_ip: boolean set to 1 if dest is an IP
+** timeout_arg: string argument for -W option
 ** ttl_arg: string argument for -t option
 ** verbose: boolean set to 1 if -v is set
 ** destinfo: result of getaddrinfo call (to be freed)
@@ -80,6 +81,7 @@ typedef struct			s_pingcfg
 	const char			*exec_name;
 	const char			*dest;
 	int					dest_is_ip;
+	const char			*timeout_arg;
 	const char			*ttl_arg;
 	int					verbose;
 	struct addrinfo		*destinfo;
@@ -119,10 +121,11 @@ extern t_pingcfg		*g_cfg;
 /*
 ** Ping macros
 */
-# define	FT_PING_OPT		"t:vh"
+# define	FT_PING_OPT		"W:t:vh"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
-	"\t-t ttl\t\t\tset the IP time to live\n"\
+	"\t-W timeout\t\ttime to wait for a response, in seconds\n"\
+	"\t-t ttl\t\t\tIP time to live\n"\
 	"\t-v\t\t\tverbose output\n"\
 	"\t-h\t\t\tprint help and exit\n"
 # define	PING_TTL		255
