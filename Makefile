@@ -12,7 +12,8 @@ NAME		=	ft_ping
 
 ############################## SOURCES #########################################
 
-SRCC			=	main.c\
+SRCC			=	options.c\
+					main.c\
 					ping_internals.c\
 					ping.c\
 
@@ -34,6 +35,7 @@ $(NAME): $(SUB1D)/libft.a $(ODIR) $(OBJ)
 $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
+options.o: ft_ping.h libft.h
 main.o: ft_ping.h libft.h
 ping_internals.o: ft_ping.h libft.h
 ping.o: ft_ping.h libft.h

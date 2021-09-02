@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 18:56:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 19:31:34 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,17 @@ void	ping(int sig)
 {
 	(void)sig;
 	echo_request(g_cfg->sockfd);
+	g_cfg->count = g_cfg->count < 0 ? g_cfg->count : g_cfg->count - 1;
 	if (!g_cfg->err)
 		echo_reply(g_cfg->sockfd);
 	if (!g_cfg->err && gettimeofday(&g_cfg->end_ts, NULL) < 0)
 		ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
 	else if (!g_cfg->err)
 	{
-		alarm(1);
+		if (g_cfg->count)
+			alarm(1);
+		else
+			ping_int_handler(0);
 		if (!g_cfg->start_ts.tv_sec && !g_cfg->start_ts.tv_usec)
 			ft_memcpy((void *)&g_cfg->start_ts,
 				(void *)&g_cfg->end_ts, sizeof(struct timeval));

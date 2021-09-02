@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 19:02:28 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 20:46:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <netinet/ip.h>
 # include <sys/time.h>
 # include <errno.h>
+# include <limits.h>
 
 # define	PINGPACK_SIZE	64
 
@@ -45,8 +46,9 @@ typedef struct			s_ping_packet
 ** exec_name: name of the ft_ping executable
 ** dest: destination given by user
 ** dest_is_ip: boolean set to 1 if dest is an IP
-** timeout_arg: string argument for -W option
-** ttl_arg: string argument for -t option
+** timeout: timeout value for ECHO_REPLY
+** count: number of ECHO_REQUEST to send
+** ttl: IP time to live
 ** verbose: boolean set to 1 if -v is set
 ** destinfo: result of getaddrinfo call (to be freed)
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
@@ -81,8 +83,9 @@ typedef struct			s_pingcfg
 	const char			*exec_name;
 	const char			*dest;
 	int					dest_is_ip;
-	const char			*timeout_arg;
-	const char			*ttl_arg;
+	int					timeout;
+	int					count;
+	int					ttl;
 	int					verbose;
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*dest_addr_in;
@@ -121,10 +124,11 @@ extern t_pingcfg		*g_cfg;
 /*
 ** Ping macros
 */
-# define	FT_PING_OPT		"W:t:vh"
+# define	FT_PING_OPT		"W:c:t:vh"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
 	"\t-W timeout\t\ttime to wait for a response, in seconds\n"\
+	"\t-c count\t\tstop after sending count ECHO_REQUEST packets\n"\
 	"\t-t ttl\t\t\tIP time to live\n"\
 	"\t-v\t\t\tverbose output\n"\
 	"\t-h\t\t\tprint help and exit\n"
@@ -150,5 +154,6 @@ void			ping_cleanup(void);
 void			print_echo_reply(int rep_err);
 unsigned int	reply_error(void);
 unsigned short	checksum(unsigned short *data, size_t sz);
+char			*get_options(int argc, char **argv);
 
 #endif
