@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 16:20:57 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 16:59:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,15 @@ static char	*get_options(int argc, char **argv)
 	args = ft_memalloc((argc + 1) * sizeof(char *));
 	ft_memcpy((void *)args, (void *)argv, argc * sizeof(char *));
 	*args = (char *)g_cfg->exec_name;
-	while ((opt = ft_getopt(argc, args, &optd)) == 'v')
-		g_cfg->verbose = 1;
-	if (g_cfg->verbose)
-		ft_printf("%s: VERBOSE MODE ON\n", g_cfg->exec_name);
-	if (opt != -1)
-	{
-		ft_printf(FT_PING_HELP, g_cfg->exec_name);
-		ft_exit(NULL, opt != 'h');
-	}
+	while ((opt = ft_getopt(argc, args, &optd)) >= 0)
+		switch (opt)
+		{
+			case 't':	g_cfg->ttl_arg = optd.optarg;	break;
+			case 'v':	++g_cfg->verbose;				break;
+			default:
+				ft_printf(FT_PING_HELP, g_cfg->exec_name);
+				ft_exit(NULL, opt != 'h');
+		}
 	ft_memdel((void **)&args);
 	return (argv[optd.optind]);
 }
@@ -63,7 +63,7 @@ static int	setup_socket(void)
 	int				sockfd;
 	struct timeval	timeout;
 
-	ttl = PING_TTL;
+	ttl = g_cfg->ttl_arg ? ft_atoi(g_cfg->ttl_arg) : PING_TTL;
 	timeout.tv_usec = 0;
 	timeout.tv_sec = PING_TIMEOUT;
 	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
@@ -74,7 +74,6 @@ static int	setup_socket(void)
 		ft_asprintf(&g_cfg->err, "setsockopt: %s", strerror(errno));
 	if (g_cfg->err)
 		ft_exit(g_cfg->err, EXIT_FAILURE);
-	ft_printf("SOCKET created successfully\n");
 	return (sockfd);
 }
 
@@ -146,7 +145,6 @@ static void	print_echo_reply(int rep_err)
 		g_cfg->max_ms = time > g_cfg->max_ms ? time : g_cfg->max_ms;
 		g_cfg->sum_ms += time;
 		g_cfg->ssum_ms += time * time;
-		//TODO: if !dest_is_ip handle FDQN shit
 		ft_printf("%zd bytes from %s", g_cfg->rd - sizeof(struct ip),
 			g_cfg->dest);
 		if (!g_cfg->dest_is_ip)

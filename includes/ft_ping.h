@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/01 15:28:58 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 17:04:21 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,8 @@ typedef struct			s_ping_packet
 ** exec_name: name of the ft_ping executable
 ** dest: destination given by user
 ** dest_is_ip: boolean set to 1 if dest is an IP
-** verbose: boolean set to 1 if verbose mode is on
+** ttl_arg: string argument for -t option
+** verbose: boolean set to 1 if -v is set
 ** destinfo: result of getaddrinfo call (to be freed)
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
 ** iov_buffer: raw data read from socket
@@ -60,6 +61,7 @@ typedef struct			s_ping_packet
 ** resp_icmp_hdr: icmp header cast of the reply packet
 ** sent: number of packets successfully sent
 ** received: number of packets successfully received
+** errors: number of requests returning an error
 ** err: error string (will exit if set)
 ** sockfd: file descriptor of socket
 ** start_ts: timestamp at start of program
@@ -78,6 +80,7 @@ typedef struct			s_pingcfg
 	const char			*exec_name;
 	const char			*dest;
 	int					dest_is_ip;
+	const char			*ttl_arg;
 	int					verbose;
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*dest_addr_in;
@@ -93,6 +96,7 @@ typedef struct			s_pingcfg
 	struct icmphdr		*resp_icmp_hdr;
 	unsigned int		sent;
 	unsigned int		received;
+	unsigned int		errors;
 	char				*err;
 	int					sockfd;
 	struct timeval		start_ts;
@@ -115,10 +119,12 @@ extern t_pingcfg		*g_cfg;
 /*
 ** Ping macros
 */
-# define	FT_PING_OPT		"vh"
+# define	FT_PING_OPT		"t:vh"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
-	"\t-h\t\t\tprint help and exit\n\t-v\t\t\tverbose output\n"
+	"\t-t ttl\t\t\tset the IP time to live\n"\
+	"\t-v\t\t\tverbose output\n"\
+	"\t-h\t\t\tprint help and exit\n"
 # define	PING_TTL		255
 # define	PING_TIMEOUT	5
 
