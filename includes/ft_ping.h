@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 17:55:48 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 19:02:28 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,5 +140,15 @@ enum e_ping_errors {
 	PING_ICMP_HDR	= 0x04,
 	PING_ICMP_TYPE	= 0x08,
 };
+
+/*
+** Ping functions
+*/
+void			ping(int sig);
+void			ping_int_handler(int sig);
+void			ping_cleanup(void);
+void			print_echo_reply(int rep_err);
+unsigned int	reply_error(void);
+unsigned short	checksum(unsigned short *data, size_t sz);
 
 #endif

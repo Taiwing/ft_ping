@@ -13,6 +13,8 @@ NAME		=	ft_ping
 ############################## SOURCES #########################################
 
 SRCC			=	main.c\
+					ping_internals.c\
+					ping.c\
 
 ODIR			=	obj
 OBJ				=	$(patsubst %.c,%.o,$(SRCC))
@@ -33,6 +35,8 @@ $(SUB1D)/libft.a:
 	make -C $(SUB1D)
 
 main.o: ft_ping.h libft.h
+ping_internals.o: ft_ping.h libft.h
+ping.o: ft_ping.h libft.h
 %.o: %.c
 	@mkdir -p $(ODIR)
 	$(CC) -c $(CFLAGS) $< $(HFLAGS) -o $(ODIR)/$@
