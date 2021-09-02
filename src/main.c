@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:30:15 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 17:53:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 18:38:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,6 +135,25 @@ static unsigned int	reply_error(void)
 	return (icmp->type ? ret | PING_ICMP_TYPE : ret);
 }
 
+static int	print_echo_error(int rep_err)
+{
+	if (rep_err & PING_IP_HDR)
+		return (ft_dprintf(2, "%s: invalid IP header\n", g_cfg->exec_name));
+	ft_dprintf(2, "From %s", g_cfg->resp_ip);
+	if (rep_err & PING_ICMP_HDR)
+		return (ft_dprintf(2, " Invalid ICMP header\n"));
+	if ((rep_err & PING_IP_SOURCE) && !(rep_err & PING_ICMP_TYPE))
+		return (ft_dprintf(2, " Invalid reply source\n"));
+	ft_dprintf(2, " icmp_seq=%d ", g_cfg->sent);
+	if (g_cfg->resp_icmp_hdr->type == ICMP_DEST_UNREACH)
+		ft_dprintf(2, "Destination Host Unreachable\n");
+	else if (g_cfg->resp_icmp_hdr->type == ICMP_TIME_EXCEEDED)
+		ft_dprintf(2, "Time to live exceeded\n");
+	else
+		ft_dprintf(2, "Unknown Error\n");
+	return (1);
+}
+
 static void	print_echo_reply(int rep_err)
 {
 	double		time = 0.0;
@@ -156,14 +175,8 @@ static void	print_echo_reply(int rep_err)
 			g_cfg->resp_icmp_hdr->un.echo.sequence, g_cfg->resp_ip_hdr->ip_ttl,
 			time, 3 - (time >= 1.0) - (time >= 10.0) - (time >= 100.0));
 	}
-	if (rep_err & PING_IP_HDR)
-		ft_printf("PING_IP_HDR\n");
-	if (rep_err & PING_IP_SOURCE)
-		ft_printf("PING_IP_SOURCE\n");
-	if (rep_err & PING_ICMP_HDR)
-		ft_printf("PING_ICMP_HDR\n");
-	if (rep_err & PING_ICMP_TYPE)
-		ft_printf("PING_ICMP_TYPE\n");
+	else
+		print_echo_error(rep_err);
 }
 
 static void	echo_reply(int sockfd)
@@ -184,6 +197,8 @@ static void	echo_reply(int sockfd)
 		if (gettimeofday(&g_cfg->received_ts, NULL) < 0)
 			ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
 	}
+	else
+		++g_cfg->errors;
 	if (!g_cfg->err && !inet_ntop(AF_INET,
 		(void *)&g_cfg->resp_ip_hdr->ip_src.s_addr,
 		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
@@ -255,8 +270,10 @@ static void	ping_int_handler(int sig)
 	time = (g_cfg->end_ts.tv_sec - g_cfg->start_ts.tv_sec) * 1000;
 	time += (g_cfg->end_ts.tv_usec - g_cfg->start_ts.tv_usec) / 1000;
 	ft_printf("\n--- %s ping statistics ---\n%u packets transmitted, "
-		"%u received, %u%% packet loss, time %llums\n", g_cfg->dest,
-		g_cfg->sent, g_cfg->received, loss, time);
+		"%u received, ", g_cfg->dest, g_cfg->sent, g_cfg->received);
+	if (g_cfg->errors)
+		ft_printf("+%u errors, ", g_cfg->errors);
+	ft_printf("%u%% packet loss, time %llums\n", loss, time);
 	if (g_cfg->received)
 	{
 		g_cfg->avg_ms = g_cfg->sum_ms / (double)g_cfg->received;
