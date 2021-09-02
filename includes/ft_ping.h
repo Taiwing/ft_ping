@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 20:46:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 22:34:56 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 # include <limits.h>
 
 # define	PINGPACK_SIZE	64
+# define	DATASIZE		(PINGPACK_SIZE - sizeof(struct icmphdr))
 
 /*
 ** Ping packet structure
@@ -35,7 +36,7 @@
 typedef struct			s_ping_packet
 {
 	struct icmphdr		hdr;
-	char				data[PINGPACK_SIZE - sizeof(struct icmphdr)];
+	char				data[DATASIZE];
 }						t_ping_packet;
 
 # define	MSG_BUFLEN		1024
@@ -124,16 +125,19 @@ extern t_pingcfg		*g_cfg;
 /*
 ** Ping macros
 */
-# define	FT_PING_OPT		"W:c:t:vh"
+# define	FT_PING_OPT		"W:c:t:p:vh"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
 	"\t-W timeout\t\ttime to wait for a response, in seconds\n"\
 	"\t-c count\t\tstop after sending count ECHO_REQUEST packets\n"\
 	"\t-t ttl\t\t\tIP time to live\n"\
+	"\t-p pattern\t\tup to 16 \"pad\" bytes to fill out the packet\n"\
 	"\t-v\t\t\tverbose output\n"\
 	"\t-h\t\t\tprint help and exit\n"
 # define	PING_TTL		255
 # define	PING_TIMEOUT	5
+# define	PATTERN_BUF		32
+# define	PATTERN_MAX		16
 
 /*
 ** Ping reply errors

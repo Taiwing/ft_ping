@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 20:01:18 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 20:52:02 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 22:23:11 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ static int	ft_secatoi(int *dest, int min, int max, const char *nptr)
 	long long int	nb;
 	long long int	sign;
 
+	if (!*nptr)
+		return (-3);
 	nb = 0;
 	sign = 1;
 	if (*nptr == '-' || *nptr == '+')
@@ -48,6 +50,34 @@ void		intopt(int *dest, t_optdata *optd, int min, int max)
 	}
 }
 
+void		pattern_option(const char *arg)
+{
+	char		buf[PATTERN_BUF + 1] = { 0 }, pattern[PATTERN_MAX] = { 0 };
+	const char	*hex = "0123456789abcdefABCDEF";
+	size_t		size, i;
+
+	for (i = 0; arg[i] && !g_cfg->err; ++i)
+		if (!ft_strchr(hex, arg[i]))
+			ft_asprintf(&g_cfg->err,
+				"patterns must be specified as hex digits: %s", arg + i);
+	if (g_cfg->err)
+		ft_exit(g_cfg->err, EXIT_FAILURE);
+	ft_strncpy(buf, arg, PATTERN_BUF);
+	for (i = 0; buf[i]; ++i)
+	{
+		buf[i] = ft_tolower(buf[i]);
+		pattern[i / 2] |= ft_strchr(hex, buf[i]) - hex;
+		if (!(i & 1))
+			pattern[i / 2] <<= 4;
+	}
+	ft_printf("PATTERN: 0x%s\n", buf);
+	size = i / 2 + i % 2;
+	for (i = 0; size && DATASIZE - i >= size; i += size)
+		ft_memcpy((void *)g_cfg->request.data + i, (void *)pattern, size);
+	if (size)
+		ft_memcpy((void *)g_cfg->request.data + i,
+			(void *)pattern, DATASIZE - i);
+}
 
 char		*get_options(int argc, char **argv)
 {
@@ -66,6 +96,7 @@ char		*get_options(int argc, char **argv)
 			case 'W': intopt(&g_cfg->timeout, &optd, 1, INT_MAX);	break;
 			case 'c': intopt(&g_cfg->count, &optd, 1, INT_MAX);		break;
 			case 't': intopt(&g_cfg->ttl, &optd, 1, 255);			break;
+			case 'p': pattern_option(optd.optarg);					break;
 			case 'v': ++g_cfg->verbose;								break;
 			default:
 				ft_printf(FT_PING_HELP, g_cfg->exec_name);
