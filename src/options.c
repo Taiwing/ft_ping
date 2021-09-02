@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 20:01:18 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 22:23:11 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/02 22:41:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,9 +66,9 @@ void		pattern_option(const char *arg)
 	for (i = 0; buf[i]; ++i)
 	{
 		buf[i] = ft_tolower(buf[i]);
-		pattern[i / 2] |= ft_strchr(hex, buf[i]) - hex;
-		if (!(i & 1))
+		if (i & 1)
 			pattern[i / 2] <<= 4;
+		pattern[i / 2] |= ft_strchr(hex, buf[i]) - hex;
 	}
 	ft_printf("PATTERN: 0x%s\n", buf);
 	size = i / 2 + i % 2;
