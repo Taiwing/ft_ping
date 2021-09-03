@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:59:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 14:29:16 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:38:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ void	print_echo_reply(int rep_err, struct timeval *received)
 		if (g_cfg->print_time)
 			time = reply_time(received);
 		ft_printf("%zd bytes from %s", g_cfg->rd - sizeof(struct ip),
-			g_cfg->dest);
+		g_cfg->dest_addr_in->sin_addr.s_addr ? g_cfg->dest : g_cfg->resp_ip);
 		if (!g_cfg->dest_is_ip)
 			ft_printf(" (%s)", g_cfg->resp_ip);
 		ft_printf(": icmp_seq=%hu ttl=%hhu",

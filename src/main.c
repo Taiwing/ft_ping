@@ -72,8 +72,7 @@ static void	build_config(int argc, char **argv)
 	g_cfg->resp_ip_hdr = (struct ip *)g_cfg->iov_buffer;
 	g_cfg->resp_icmp_hdr =
 		(struct icmphdr *)(g_cfg->iov_buffer + sizeof(struct ip));
-	g_cfg->resp_data = (char *)
-		(g_cfg->iov_buffer + sizeof(struct ip) + sizeof(struct icmphdr));
+	g_cfg->resp_data = (char *)(g_cfg->iov_buffer + HEADERS_SIZE);
 	g_cfg->count = g_cfg->count ? g_cfg->count : -1;
 }
 
@@ -94,8 +93,7 @@ int	main(int argc, char **argv)
 		ft_exit("user is not root", EXIT_FAILURE);
 	g_cfg->sockfd = setup_socket();
 	ft_printf("PING %s (%s) %d(%d) bytes of data.\n", g_cfg->dest,
-		g_cfg->dest_ip, g_cfg->datasize,
-		sizeof(struct ip) + sizeof(struct icmphdr) + g_cfg->datasize);
+		g_cfg->dest_ip, g_cfg->datasize, HEADERS_SIZE + g_cfg->datasize);
 	ping(0);
 	while (42);
 	return (EXIT_SUCCESS);
