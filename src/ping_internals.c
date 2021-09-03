@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:59:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 19:02:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 02:52:32 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ unsigned int	reply_error(void)
 {
 	struct ip		*ip = g_cfg->resp_ip_hdr;
 	struct icmphdr	*icmp = g_cfg->resp_icmp_hdr;
-	unsigned short	sum = ip->ip_sum;
-	unsigned short	len = ip->ip_len;
+	char			*data = g_cfg->resp_data;
+	unsigned short	sum = ip->ip_sum, len = ip->ip_len;
 	unsigned int	ret = 0;
 
 	ip->ip_sum = 0;
@@ -45,15 +45,24 @@ unsigned int	reply_error(void)
 	sum = icmp->checksum;
 	icmp->checksum = 0;
 	len -= sizeof(*ip);
-	if (len < sizeof (*icmp) || sum != checksum((unsigned short *)icmp, len))
-		ret |= PING_ICMP_HDR;
-	return (icmp->type ? ret | PING_ICMP_TYPE : ret);
+	if (len < sizeof(*icmp) || sum != checksum((unsigned short *)icmp, len))
+		return (PING_ICMP_HDR);
+	if (icmp->type != ICMP_ECHOREPLY)
+		ret |= PING_ICMP_TYPE;
+	len -= sizeof(*icmp);
+	if (!ret && (icmp->un.echo.sequence != g_cfg->request.hdr.un.echo.sequence
+		|| icmp->un.echo.id != g_cfg->request.hdr.un.echo.id || len != DATASIZE
+		|| ft_memcmp((void *)data, (void *)g_cfg->request.data, len)))
+		return (PING_FOREIGN_REPLY);
+	return (ret);
 }
 
 static int	print_echo_error(int rep_err)
 {
 	if (rep_err & PING_IP_HDR)
 		return (ft_dprintf(2, "%s: invalid IP header\n", g_cfg->exec_name));
+	else if (rep_err & PING_FOREIGN_REPLY)
+		return (ft_dprintf(2, "%s: lost package\n", g_cfg->exec_name));
 	ft_dprintf(2, "From %s", g_cfg->resp_ip);
 	if (rep_err & PING_ICMP_HDR)
 		return (ft_dprintf(2, " Invalid ICMP header\n"));

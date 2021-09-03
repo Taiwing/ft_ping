@@ -1,13 +1,20 @@
 #include "ft_ping.h"
 
+static void	ping_cleanup(void)
+{
+	if (g_cfg->destinfo)
+		freeaddrinfo(g_cfg->destinfo);
+}
+
 static int	setup_socket(void)
 {
 	int				sockfd;
 	struct timeval	timeout;
 
 	g_cfg->ttl = g_cfg->ttl ? g_cfg->ttl : PING_TTL;
+	g_cfg->timeout = g_cfg->timeout ? g_cfg->timeout : PING_TIMEOUT;
 	timeout.tv_usec = 0;
-	timeout.tv_sec = g_cfg->timeout ? g_cfg->timeout : PING_TIMEOUT;
+	timeout.tv_sec = g_cfg->timeout;
 	if ((sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP)) < 0)
 		ft_asprintf(&g_cfg->err, "socket: %s", strerror(errno));
 	if (!g_cfg->err && (setsockopt(sockfd, SOL_IP, IP_TTL, (void *)&g_cfg->ttl,
@@ -63,6 +70,8 @@ static void	build_config(int argc, char **argv)
 	g_cfg->resp_ip_hdr = (struct ip *)g_cfg->iov_buffer;
 	g_cfg->resp_icmp_hdr =
 		(struct icmphdr *)(g_cfg->iov_buffer + sizeof(struct ip));
+	g_cfg->resp_data = (char *)
+		(g_cfg->iov_buffer + sizeof(struct ip) + sizeof(struct icmphdr));
 	g_cfg->count = g_cfg->count ? g_cfg->count : -1;
 }
 

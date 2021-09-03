@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 22:34:56 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 02:10:03 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ typedef struct			s_ping_packet
 ** rd: number of bytes read from socket
 ** resp_ip_hdr: ip header cast of the reply packet
 ** resp_icmp_hdr: icmp header cast of the reply packet
+** resp_data: cast of the data part of the reply packet
 ** sent: number of packets successfully sent
 ** received: number of packets successfully received
 ** errors: number of requests returning an error
@@ -100,6 +101,7 @@ typedef struct			s_pingcfg
 	ssize_t				rd;
 	struct ip			*resp_ip_hdr;
 	struct icmphdr		*resp_icmp_hdr;
+	char				*resp_data;
 	unsigned int		sent;
 	unsigned int		received;
 	unsigned int		errors;
@@ -143,10 +145,11 @@ extern t_pingcfg		*g_cfg;
 ** Ping reply errors
 */
 enum e_ping_errors {
-	PING_IP_HDR		= 0x01,
-	PING_IP_SOURCE	= 0x02,
-	PING_ICMP_HDR	= 0x04,
-	PING_ICMP_TYPE	= 0x08,
+	PING_IP_HDR			= 0x01,
+	PING_IP_SOURCE		= 0x02,
+	PING_ICMP_HDR		= 0x04,
+	PING_ICMP_TYPE		= 0x08,
+	PING_FOREIGN_REPLY	= 0x10,
 };
 
 /*
@@ -154,7 +157,6 @@ enum e_ping_errors {
 */
 void			ping(int sig);
 void			ping_int_handler(int sig);
-void			ping_cleanup(void);
 void			print_echo_reply(int rep_err);
 unsigned int	reply_error(void);
 unsigned short	checksum(unsigned short *data, size_t sz);

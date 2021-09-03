@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 19:31:34 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 02:40:51 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,19 +29,29 @@ static void	echo_request(int sockfd)
 	}
 }
 
+static int	receive_reply(int sockfd)
+{
+	int				rep_err;
+
+	rep_err = 0;
+	while (!g_cfg->err)
+	{
+		ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
+		if ((g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
+			ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
+		else if (!(rep_err = reply_error()) ||
+			(rep_err == (PING_IP_SOURCE | PING_ICMP_TYPE)
+			&& g_cfg->resp_icmp_hdr->type != ICMP_ECHO))
+			break;
+	}
+	return (rep_err);
+}
+
 static void	echo_reply(int sockfd)
 {
 	int			rep_err = 0;
 
-	ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
-	if ((g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
-		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
-	else if (g_cfg->resp_icmp_hdr->type == ICMP_ECHO
-		&& !ft_memcmp((void *)&g_cfg->request, (void *)g_cfg->resp_icmp_hdr,
-		sizeof(g_cfg->request))
-		&& (g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
-		ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
-	else if (!(rep_err = reply_error()))
+	if (!(rep_err = receive_reply(sockfd)))
 	{
 		++g_cfg->received;
 		if (gettimeofday(&g_cfg->received_ts, NULL) < 0)
@@ -55,12 +65,6 @@ static void	echo_reply(int sockfd)
 		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
 	if (!g_cfg->err)
 		print_echo_reply(rep_err);
-}
-
-void	ping_cleanup(void)
-{
-	if (g_cfg->destinfo)
-		freeaddrinfo(g_cfg->destinfo);
 }
 
 void	ping_int_handler(int sig)
