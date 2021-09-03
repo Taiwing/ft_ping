@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:59:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 02:52:32 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:11:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,19 +78,29 @@ static int	print_echo_error(int rep_err)
 	return (1);
 }
 
+static double	reply_time(void)
+{
+	struct timeval	sent;
+	double			time = 0.0;
+
+	ft_memcpy((void *)&sent, (void *)g_cfg->resp_data, sizeof(sent));
+	time = (double)(g_cfg->received_ts.tv_sec - sent.tv_sec) * 1000
+		+ (double)(g_cfg->received_ts.tv_usec - sent.tv_usec) / 1000;
+	g_cfg->min_ms = time < g_cfg->min_ms || g_cfg->received == 1 ?
+		time : g_cfg->min_ms;
+	g_cfg->max_ms = time > g_cfg->max_ms ? time : g_cfg->max_ms;
+	g_cfg->sum_ms += time;
+	g_cfg->ssum_ms += time * time;
+	return (time);
+}
+
 void	print_echo_reply(int rep_err)
 {
-	double		time = 0.0;
+	double			time;
 
-	time = (double)(g_cfg->received_ts.tv_sec - g_cfg->sent_ts.tv_sec) * 1000
-		+ (double)(g_cfg->received_ts.tv_usec - g_cfg->sent_ts.tv_usec) / 1000;
 	if (!rep_err)
 	{
-		g_cfg->min_ms = time < g_cfg->min_ms || g_cfg->received == 1 ?
-			time : g_cfg->min_ms;
-		g_cfg->max_ms = time > g_cfg->max_ms ? time : g_cfg->max_ms;
-		g_cfg->sum_ms += time;
-		g_cfg->ssum_ms += time * time;
+		time = reply_time();
 		ft_printf("%zd bytes from %s", g_cfg->rd - sizeof(struct ip),
 			g_cfg->dest);
 		if (!g_cfg->dest_is_ip)

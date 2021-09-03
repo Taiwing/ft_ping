@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 20:01:18 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/02 22:41:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:15:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ void		pattern_option(const char *arg)
 	}
 	ft_printf("PATTERN: 0x%s\n", buf);
 	size = i / 2 + i % 2;
-	for (i = 0; size && DATASIZE - i >= size; i += size)
+	for (i = sizeof(struct timeval); size && DATASIZE - i >= size; i += size)
 		ft_memcpy((void *)g_cfg->request.data + i, (void *)pattern, size);
 	if (size)
 		ft_memcpy((void *)g_cfg->request.data + i,

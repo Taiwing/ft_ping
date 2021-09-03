@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 02:40:51 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:13:01 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,22 @@
 
 static void	echo_request(int sockfd)
 {
+	struct timeval	sent;
+
 	g_cfg->request.hdr.checksum = 0;
 	++g_cfg->request.hdr.un.echo.sequence;
-	g_cfg->request.hdr.checksum =
-		checksum((void *)&g_cfg->request, sizeof(t_ping_packet));
-	if (sendto(sockfd, (void *)&g_cfg->request, sizeof(t_ping_packet), 0,
-		g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
-		ft_asprintf(&g_cfg->err, "sendto: %s", strerror(errno));
+	if (gettimeofday(&sent, NULL) < 0)
+		ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
 	else
 	{
-		++g_cfg->sent;
-		if (gettimeofday(&g_cfg->sent_ts, NULL) < 0)
-			ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
+		ft_memcpy((void *)g_cfg->request.data, (void *)&sent, sizeof(sent));
+		g_cfg->request.hdr.checksum =
+			checksum((void *)&g_cfg->request, sizeof(t_ping_packet));
+		if (sendto(sockfd, (void *)&g_cfg->request, sizeof(t_ping_packet), 0,
+			g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
+			ft_asprintf(&g_cfg->err, "sendto: %s", strerror(errno));
+		else
+			++g_cfg->sent;
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 02:10:03 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:13:43 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ typedef struct			s_ping_packet
 ** sockfd: file descriptor of socket
 ** start_ts: timestamp at start of program
 ** end_ts: timestamp at end of program (on SIGINT)
-** sent_ts: timestamp at sent echo request
 ** received_ts: timestamp at received echo reply
 ** min_ms: fastest reply
 ** max_ms: slowest reply
@@ -109,7 +108,6 @@ typedef struct			s_pingcfg
 	int					sockfd;
 	struct timeval		start_ts;
 	struct timeval		end_ts;
-	struct timeval		sent_ts;
 	struct timeval		received_ts;
 	double				min_ms;
 	double				max_ms;
