@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:13:43 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:24:46 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ typedef struct			s_ping_packet
 ** sockfd: file descriptor of socket
 ** start_ts: timestamp at start of program
 ** end_ts: timestamp at end of program (on SIGINT)
-** received_ts: timestamp at received echo reply
 ** min_ms: fastest reply
 ** max_ms: slowest reply
 ** sum_ms: sum of all reply times
@@ -108,7 +107,6 @@ typedef struct			s_pingcfg
 	int					sockfd;
 	struct timeval		start_ts;
 	struct timeval		end_ts;
-	struct timeval		received_ts;
 	double				min_ms;
 	double				max_ms;
 	double				sum_ms;
@@ -155,7 +153,7 @@ enum e_ping_errors {
 */
 void			ping(int sig);
 void			ping_int_handler(int sig);
-void			print_echo_reply(int rep_err);
+void			print_echo_reply(int rep_err, struct timeval *received);
 unsigned int	reply_error(void);
 unsigned short	checksum(unsigned short *data, size_t sz);
 char			*get_options(int argc, char **argv);

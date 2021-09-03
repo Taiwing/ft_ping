@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:13:01 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 12:21:37 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,13 @@ static int	receive_reply(int sockfd)
 
 static void	echo_reply(int sockfd)
 {
-	int			rep_err = 0;
+	int				rep_err = 0;
+	struct timeval	received = { 0 };
 
 	if (!(rep_err = receive_reply(sockfd)))
 	{
 		++g_cfg->received;
-		if (gettimeofday(&g_cfg->received_ts, NULL) < 0)
+		if (gettimeofday(&received, NULL) < 0)
 			ft_asprintf(&g_cfg->err, "gettimeofday: %s", strerror(errno));
 	}
 	else
@@ -68,7 +69,7 @@ static void	echo_reply(int sockfd)
 		(void *)g_cfg->resp_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
 	if (!g_cfg->err)
-		print_echo_reply(rep_err);
+		print_echo_reply(rep_err, &received);
 }
 
 void	ping_int_handler(int sig)
