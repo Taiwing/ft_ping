@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 20:01:18 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:15:25 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:02:19 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,11 @@ void		intopt(int *dest, t_optdata *optd, int min, int max)
 	}
 }
 
-void		pattern_option(const char *arg)
+void		pattern_option(const char *arg, int print)
 {
-	char		buf[PATTERN_BUF + 1] = { 0 }, pattern[PATTERN_MAX] = { 0 };
+	char		buf[PATTERN_BUF + 1] = { 0 }, p[PATTERN_MAX] = { 0 };
 	const char	*hex = "0123456789abcdefABCDEF";
-	size_t		size, i;
+	size_t		sz, i, ds = DATASIZE;
 
 	for (i = 0; arg[i] && !g_cfg->err; ++i)
 		if (!ft_strchr(hex, arg[i]))
@@ -67,16 +67,16 @@ void		pattern_option(const char *arg)
 	{
 		buf[i] = ft_tolower(buf[i]);
 		if (i & 1)
-			pattern[i / 2] <<= 4;
-		pattern[i / 2] |= ft_strchr(hex, buf[i]) - hex;
+			p[i / 2] <<= 4;
+		p[i / 2] |= ft_strchr(hex, buf[i]) - hex;
 	}
-	ft_printf("PATTERN: 0x%s\n", buf);
-	size = i / 2 + i % 2;
-	for (i = sizeof(struct timeval); size && DATASIZE - i >= size; i += size)
-		ft_memcpy((void *)g_cfg->request.data + i, (void *)pattern, size);
-	if (size)
-		ft_memcpy((void *)g_cfg->request.data + i,
-			(void *)pattern, DATASIZE - i);
+	if (print)
+		ft_printf("PATTERN: 0x%s\n", buf);
+	sz = i / 2 + i % 2;
+	for (i = sizeof(struct timeval); sz && i + sz <= ds; i += sz)
+		ft_memcpy((void *)g_cfg->request.data + i, (void *)p, sz);
+	if (sz && i < ds)
+		ft_memcpy((void *)g_cfg->request.data + i, (void *)p, ds - i);
 }
 
 char		*get_options(int argc, char **argv)
@@ -93,11 +93,12 @@ char		*get_options(int argc, char **argv)
 	while ((opt = ft_getopt(argc, args, &optd)) >= 0)
 		switch (opt)
 		{
-			case 'W': intopt(&g_cfg->timeout, &optd, 1, INT_MAX);	break;
 			case 'c': intopt(&g_cfg->count, &optd, 1, INT_MAX);		break;
+			case 'p': pattern_option(optd.optarg, 0);				break;
+			case 's': intopt(&g_cfg->datasize, &optd, 0, DATASIZE);	break;
 			case 't': intopt(&g_cfg->ttl, &optd, 1, 255);			break;
-			case 'p': pattern_option(optd.optarg);					break;
 			case 'v': ++g_cfg->verbose;								break;
+			case 'W': intopt(&g_cfg->timeout, &optd, 1, INT_MAX);	break;
 			default:
 				ft_printf(FT_PING_HELP, g_cfg->exec_name);
 				ft_exit(NULL, opt != 'h');

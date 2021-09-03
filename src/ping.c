@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:21:37 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:15:50 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,10 @@ static void	echo_request(int sockfd)
 	else
 	{
 		ft_memcpy((void *)g_cfg->request.data, (void *)&sent, sizeof(sent));
-		g_cfg->request.hdr.checksum =
-			checksum((void *)&g_cfg->request, sizeof(t_ping_packet));
-		if (sendto(sockfd, (void *)&g_cfg->request, sizeof(t_ping_packet), 0,
+		g_cfg->request.hdr.checksum = checksum((void *)&g_cfg->request,
+			g_cfg->datasize + sizeof(struct icmphdr));
+		if (sendto(sockfd, (void *)&g_cfg->request,
+			g_cfg->datasize + sizeof(struct icmphdr), 0,
 			g_cfg->destinfo->ai_addr, sizeof(struct sockaddr)) < 0)
 			ft_asprintf(&g_cfg->err, "sendto: %s", strerror(errno));
 		else
@@ -40,7 +41,7 @@ static int	receive_reply(int sockfd)
 	rep_err = 0;
 	while (!g_cfg->err)
 	{
-		ft_bzero((void *)g_cfg->iov_buffer, MSG_BUFLEN);
+		ft_bzero((void *)g_cfg->iov_buffer, (size_t)g_cfg->datasize);
 		if ((g_cfg->rd = recvmsg(sockfd, &g_cfg->response, 0)) < 0)
 			ft_asprintf(&g_cfg->err, "recvmsg: %s", strerror(errno));
 		else if (!(rep_err = reply_error()) ||
@@ -89,7 +90,7 @@ void	ping_int_handler(int sig)
 	if (g_cfg->errors)
 		ft_printf("+%u errors, ", g_cfg->errors);
 	ft_printf("%u%% packet loss, time %llums\n", loss, time);
-	if (g_cfg->received)
+	if (g_cfg->received && g_cfg->print_time)
 	{
 		g_cfg->avg_ms = g_cfg->sum_ms / (double)g_cfg->received;
 		g_cfg->mdev_ms = ft_sqrt(g_cfg->ssum_ms / g_cfg->received

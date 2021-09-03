@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/08/23 04:34:28 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:24:46 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:12:22 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,11 @@
 # include <errno.h>
 # include <limits.h>
 
-# define	PINGPACK_SIZE	64
+# define	MSG_BUFLEN		65536
+# define	PINGPACK_SIZE	(MSG_BUFLEN - sizeof(struct ip) - 1)
 # define	DATASIZE		(PINGPACK_SIZE - sizeof(struct icmphdr))
+# define	DATASIZE_DEF	56
+# define	HEADERS_SIZE	(sizeof(struct ip) + sizeof(struct icmphdr))
 
 /*
 ** Ping packet structure
@@ -39,7 +42,6 @@ typedef struct			s_ping_packet
 	char				data[DATASIZE];
 }						t_ping_packet;
 
-# define	MSG_BUFLEN		1024
 //TODO: maybe remove msg_buffer as it seems to be useless
 /*
 ** Ping configuration structure
@@ -50,7 +52,9 @@ typedef struct			s_ping_packet
 ** timeout: timeout value for ECHO_REPLY
 ** count: number of ECHO_REQUEST to send
 ** ttl: IP time to live
+** datasize: size of icmp data buffer
 ** verbose: boolean set to 1 if -v is set
+** print_time: booblean set to 1 if datasize is be enough
 ** destinfo: result of getaddrinfo call (to be freed)
 ** dest_addr_in: sockaddr_in cast of sockaddr pointer
 ** iov_buffer: raw data read from socket
@@ -86,7 +90,9 @@ typedef struct			s_pingcfg
 	int					timeout;
 	int					count;
 	int					ttl;
+	int					datasize;
 	int					verbose;
+	int					print_time;
 	struct addrinfo		*destinfo;
 	struct sockaddr_in	*dest_addr_in;
 	char				iov_buffer[MSG_BUFLEN];
@@ -123,15 +129,16 @@ extern t_pingcfg		*g_cfg;
 /*
 ** Ping macros
 */
-# define	FT_PING_OPT		"W:c:t:p:vh"
+# define	FT_PING_OPT		"c:hp:s:t:vW:"
 # define	FT_PING_HELP	"Usage:\n\t%s [options] <destination>\n"\
 	"Options:\n\t<destination>\t\thostname or IPv4 address\n"\
-	"\t-W timeout\t\ttime to wait for a response, in seconds\n"\
 	"\t-c count\t\tstop after sending count ECHO_REQUEST packets\n"\
-	"\t-t ttl\t\t\tIP time to live\n"\
+	"\t-h\t\t\tprint help and exit\n"\
 	"\t-p pattern\t\tup to 16 \"pad\" bytes to fill out the packet\n"\
+	"\t-s packetsize\t\tnumber of data bytes to send\n"\
+	"\t-t ttl\t\t\tIP time to live\n"\
 	"\t-v\t\t\tverbose output\n"\
-	"\t-h\t\t\tprint help and exit\n"
+	"\t-W timeout\t\ttime to wait for a response, in seconds\n"
 # define	PING_TTL		255
 # define	PING_TIMEOUT	5
 # define	PATTERN_BUF		32

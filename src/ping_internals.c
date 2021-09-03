@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:59:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 12:23:22 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:16:41 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,9 @@ unsigned int	reply_error(void)
 		ret |= PING_ICMP_TYPE;
 	len -= sizeof(*icmp);
 	if (!ret && (icmp->un.echo.sequence != g_cfg->request.hdr.un.echo.sequence
-		|| icmp->un.echo.id != g_cfg->request.hdr.un.echo.id || len != DATASIZE
-		|| ft_memcmp((void *)data, (void *)g_cfg->request.data, len)))
+		|| icmp->un.echo.id != g_cfg->request.hdr.un.echo.id
+		|| len != (unsigned short)g_cfg->datasize || ft_memcmp((void *)data,
+		(void *)g_cfg->request.data, len)))
 		return (PING_FOREIGN_REPLY);
 	return (ret);
 }
@@ -96,18 +97,22 @@ static double	reply_time(struct timeval *received)
 
 void	print_echo_reply(int rep_err, struct timeval *received)
 {
-	double			time;
+	double	time;
 
 	if (!rep_err)
 	{
-		time = reply_time(received);
+		if (g_cfg->print_time)
+			time = reply_time(received);
 		ft_printf("%zd bytes from %s", g_cfg->rd - sizeof(struct ip),
 			g_cfg->dest);
 		if (!g_cfg->dest_is_ip)
 			ft_printf(" (%s)", g_cfg->resp_ip);
-		ft_printf(": icmp_seq=%hu ttl=%hhu time=%.*f ms\n",
-			g_cfg->resp_icmp_hdr->un.echo.sequence, g_cfg->resp_ip_hdr->ip_ttl,
-			time, 3 - (time >= 1.0) - (time >= 10.0) - (time >= 100.0));
+		ft_printf(": icmp_seq=%hu ttl=%hhu",
+			g_cfg->resp_icmp_hdr->un.echo.sequence, g_cfg->resp_ip_hdr->ip_ttl);
+		if (g_cfg->print_time)
+			ft_printf(" time=%.*f ms", time,
+				3 - (time >= 1.0) - (time >= 10.0) - (time >= 100.0));
+		ft_putchar('\n');
 	}
 	else
 		print_echo_error(rep_err);
