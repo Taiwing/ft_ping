@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:59:02 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 14:16:41 by yforeau          ###   ########.fr       */
+/*   Updated: 2021/09/03 14:29:16 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,8 @@ unsigned int	reply_error(void)
 	if (ip->ip_hl != 5 || ip->ip_v != 4 || ip->ip_p != 1 || len < sizeof(*ip)
 		|| sum != checksum((unsigned short *)ip, sizeof(*ip)))
 		return (PING_IP_HDR);
-	if (ip->ip_src.s_addr != g_cfg->dest_addr_in->sin_addr.s_addr)
+	if (ip->ip_src.s_addr != g_cfg->dest_addr_in->sin_addr.s_addr
+		&& g_cfg->dest_addr_in->sin_addr.s_addr)
 		ret |= PING_IP_SOURCE;
 	sum = icmp->checksum;
 	icmp->checksum = 0;
