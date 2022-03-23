@@ -6,47 +6,22 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 20:01:18 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 14:02:19 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/23 06:07:25 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ft_ping.h"
 
-static int	ft_secatoi(int *dest, int min, int max, const char *nptr)
-{
-	long long int	nb;
-	long long int	sign;
-
-	if (!*nptr)
-		return (-3);
-	nb = 0;
-	sign = 1;
-	if (*nptr == '-' || *nptr == '+')
-		sign = *nptr++ == '-' ? -1 : sign;
-	while (*nptr > 47 && *nptr < 58 && nb <= max)
-		nb = (nb * 10) + ((*nptr++) - 48);
-	if (*nptr && (*nptr <= 47 || *nptr >= 58))
-		return (-3);
-	else if (nb > max)
-		return (-1);
-	else if (nb * sign < min)
-		return (-2);
-	*dest = nb * sign;
-	return (0);
-}
-
 void		intopt(int *dest, t_optdata *optd, int min, int max)
 {
-	int	ret;
-
-	if ((ret = ft_secatoi(dest, min, max, optd->optarg)))
+	if (ft_secatoi(dest, min, max, optd->optarg) < 0)
 	{
-		if (ret == -3)
+		if (ft_errno == E_FTERR_NOT_A_NUMBER)
 			ft_asprintf(&g_cfg->err, "invalid argument: '%s'", optd->optarg);
 		else
 			ft_asprintf(&g_cfg->err, "invalid argument: '%s': "
 				"out of range: %d <= value <= %d", optd->optarg, min, max);
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 	}
 }
 
@@ -61,7 +36,7 @@ void		pattern_option(const char *arg, int print)
 			ft_asprintf(&g_cfg->err,
 				"patterns must be specified as hex digits: %s", arg + i);
 	if (g_cfg->err)
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 	ft_strncpy(buf, arg, PATTERN_BUF);
 	for (i = 0; buf[i]; ++i)
 	{
@@ -101,7 +76,7 @@ char		*get_options(int argc, char **argv)
 			case 'W': intopt(&g_cfg->timeout, &optd, 1, INT_MAX);	break;
 			default:
 				ft_printf(FT_PING_HELP, g_cfg->exec_name);
-				ft_exit(NULL, opt != 'h');
+				ft_exit(opt != 'h', NULL);
 		}
 	ft_memdel((void **)&args);
 	return (argv[optd.optind]);

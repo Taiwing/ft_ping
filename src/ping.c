@@ -6,7 +6,7 @@
 /*   By: yforeau <yforeau@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/09/02 18:53:56 by yforeau           #+#    #+#             */
-/*   Updated: 2021/09/03 14:15:50 by yforeau          ###   ########.fr       */
+/*   Updated: 2022/03/23 05:15:31 by yforeau          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void	ping_int_handler(int sig)
 		ft_printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n",
 			g_cfg->min_ms, g_cfg->avg_ms, g_cfg->max_ms, g_cfg->mdev_ms);
 	}
-	ft_exit(NULL, EXIT_SUCCESS);
+	ft_exit(EXIT_SUCCESS, NULL);
 }
 
 void	ping(int sig)
@@ -121,5 +121,5 @@ void	ping(int sig)
 				(void *)&g_cfg->end_ts, sizeof(struct timeval));
 	}
 	else
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 }

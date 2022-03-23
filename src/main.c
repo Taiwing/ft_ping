@@ -22,7 +22,7 @@ static int	setup_socket(void)
 		(void *)&timeout, sizeof(struct timeval)) < 0))
 		ft_asprintf(&g_cfg->err, "setsockopt: %s", strerror(errno));
 	if (g_cfg->err)
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 	return (sockfd);
 }
 
@@ -44,7 +44,7 @@ static void	get_destinfo(void)
 		g_cfg->dest_ip, INET_ADDRSTRLEN))
 		ft_asprintf(&g_cfg->err, "inet_ntop: %s", strerror(errno));
 	if (g_cfg->err)
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 }
 
 static void	build_config(int argc, char **argv)
@@ -54,10 +54,10 @@ static void	build_config(int argc, char **argv)
 	g_cfg->exec_name = ft_exec_name(*argv);
 	ft_exitmsg((char *)g_cfg->exec_name);
 	if (g_cfg->err)
-		ft_exit(g_cfg->err, EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, g_cfg->err);
 	g_cfg->datasize = DATASIZE_DEF;
 	if (!(g_cfg->dest = get_options(argc, argv)))
-		ft_exit("usage error: Destination address required", EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "usage error: Destination address required");
 	if ((g_cfg->dest_is_ip = inet_pton(AF_INET, g_cfg->dest, (void *)buf)) < 0)
 		ft_asprintf(&g_cfg->err, "inet_pton: %s", strerror(errno));
 	get_destinfo();
@@ -90,7 +90,7 @@ int	main(int argc, char **argv)
 		ft_asprintf(&g_cfg->err, "signal: %s", strerror(errno));
 	build_config(argc, argv);
 	if (getuid())
-		ft_exit("user is not root", EXIT_FAILURE);
+		ft_exit(EXIT_FAILURE, "user is not root");
 	g_cfg->sockfd = setup_socket();
 	ft_printf("PING %s (%s) %d(%d) bytes of data.\n", g_cfg->dest,
 		g_cfg->dest_ip, g_cfg->datasize, HEADERS_SIZE + g_cfg->datasize);
