@@ -1,0 +1,1 @@
+-n ft_ping -sn libft libft.a -f '-Wall -Wextra -Werror'
