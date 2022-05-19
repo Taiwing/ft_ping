@@ -42,3 +42,22 @@ Options:
 	-v			verbose output
 	-W timeout		time to wait for a response, in seconds
 ```
+
+#### example:
+
+```shell
+# send 3 pings to google.com and exit
+sudo ./ft_ping -c 3 google.com
+```
+
+possible output:
+```
+PING google.com (172.217.19.238) 56(84) bytes of data.
+64 bytes from google.com (172.217.19.238): icmp_seq=1 ttl=116 time=7.14 ms
+64 bytes from google.com (172.217.19.238): icmp_seq=2 ttl=116 time=7.81 ms
+64 bytes from google.com (172.217.19.238): icmp_seq=3 ttl=116 time=8.23 ms
+
+--- google.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2016ms
+rtt min/avg/max/mdev = 7.142/7.727/8.231/0.448 ms
+```
