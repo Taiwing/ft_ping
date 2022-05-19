@@ -1,7 +1,9 @@
 # ft_ping
 
 Implementation of the ping command in C. This program sends ping probes to a
-given host and waits for the responses.
+given host and waits for the responses. This is useful to check if a given
+server is up or down and diagnostic eventual connexion problems from the the
+probes round trip time values.
 
 <br />
 <p align="center">
@@ -23,6 +25,9 @@ As shown above this program needs sudo rights. This is because ft\_ping uses raw
 sockets for crafting custom ip packets and read responses.
 
 ## Usage
+
+ft\_ping sends an ICMP ECHO\_REQUEST packet and waits for an ECHO\_REPLY. It
+loops and sends one probe per second by default.
 
 ```
 Usage:
