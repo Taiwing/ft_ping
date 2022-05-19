@@ -5,7 +5,7 @@ given host and waits for the responses.
 
 <br />
 <p align="center">
-	<img src="https://github.com/Taiwing/ft_ssl/blob/master/resources/ping-screenshot.png?raw=true" alt="ping-screenshot" style="width: 50%;"/>
+	<img src="https://github.com/Taiwing/ft_ping/blob/master/resources/ping-screenshot.png?raw=true" alt="ping-screenshot" style="width: 50%;"/>
 </p>
 
 ## Setup
