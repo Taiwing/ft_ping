@@ -18,3 +18,22 @@ cd ft_ping/ && make
 # run it
 sudo ./ft_ping example.com
 ```
+
+As shown above this program needs sudo rights. This is because ft\_ping uses raw
+sockets for crafting custom ip packets and read responses.
+
+## Usage
+
+```
+Usage:
+	ft_ping [options] <destination>
+Options:
+	<destination>		hostname or IPv4 address
+	-c count		stop after sending count ECHO_REQUEST packets
+	-h			print help and exit
+	-p pattern		up to 16 "pad" bytes to fill out the packet
+	-s packetsize		number of data bytes to send
+	-t ttl			IP time to live
+	-v			verbose output
+	-W timeout		time to wait for a response, in seconds
+```
