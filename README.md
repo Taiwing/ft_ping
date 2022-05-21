@@ -43,6 +43,8 @@ Options:
 	-W timeout		time to wait for a response, in seconds
 ```
 
+> This program only handles valid local or remote hostnames and IPv4.
+
 #### example:
 
 ```shell
