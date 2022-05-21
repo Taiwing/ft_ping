@@ -1,4 +1,4 @@
-# ft_ping
+# ft\_ping
 
 Implementation of the ping command in C. This program sends ping probes to a
 given host and waits for the responses. This is useful to check if a given
@@ -22,7 +22,16 @@ sudo ./ft_ping example.com
 ```
 
 As shown above this program needs sudo rights. This is because ft\_ping uses raw
-sockets for crafting custom ip packets and read responses.
+sockets for crafting custom ip packets and read responses. If you do not have
+root access on your machine but docker is available, then execute the following
+commands to run ft\_ping:
+
+```shell
+# build docker image and run it
+./setup-docker.bash
+# run ft_ping inside the container
+./ft_ping example.com
+```
 
 ## Usage
 
