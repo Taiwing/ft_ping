@@ -79,9 +79,11 @@ rtt min/avg/max/mdev = 7.142/7.727/8.231/0.448 ms
 
 ft\_ping crafts ICMP packets (Internet Control Message Protocol) with the type
 field set to ECHO\_REQUEST. The ICMP protocol is on the the Network layer of the
-TCP/IP OSI model, on the same level as the IP protocol since it handles errors
-and diagnostic messages directly related to IP. If the target host is up and not
-configured to ignore ECHO\_REQUESTS it should send back an ECHO\_REPLY response.
+TCP/IP
+[OSI model](https://www.imperva.com/learn/application-security/osi-model/),
+on the same level as the IP protocol since it handles errors and diagnostic
+messages directly related to IP. If the target host is up and not configured to
+ignore ECHO\_REQUESTS it should send back an ECHO\_REPLY response.
 
 #### ECHO\_REQUEST example:
 
