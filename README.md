@@ -64,6 +64,7 @@ sudo ./ft_ping -c 3 google.com
 ```
 
 possible output:
+
 ```
 PING google.com (172.217.19.238) 56(84) bytes of data.
 64 bytes from google.com (172.217.19.238): icmp_seq=1 ttl=116 time=7.14 ms
