@@ -36,7 +36,9 @@ commands to run ft\_ping:
 ## Usage
 
 ft\_ping sends an ICMP ECHO\_REQUEST packet and waits for an ECHO\_REPLY. It
-loops and sends one probe per second by default.
+loops and sends one probe per second by default. If the count option is not
+given to ft\_ping it will need to be manually stopped with a Ctrl+C, otherwise
+it will go on forever.
 
 ```
 Usage:
